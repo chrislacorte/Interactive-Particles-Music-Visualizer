@@ -50,6 +50,7 @@ export default class GestureManager {
       onPaint: null,
       onBrushSize: null,
       onColorPalette: null,
+      onReset: null,
       // Media control callbacks
       onPlay: null,
       onStop: null,

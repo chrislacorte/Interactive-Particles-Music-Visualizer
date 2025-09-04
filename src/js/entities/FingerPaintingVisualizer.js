@@ -535,6 +535,11 @@ export default class FingerPaintingVisualizer extends THREE.Object3D {
   }
 
   clearCanvas() {
+    if (!this.ctx) {
+      console.warn('Canvas context is null, cannot clear canvas')
+      return
+    }
+    
     this.ctx.clearRect(0, 0, this.width, this.height)
     this.strokes = []
     this.particles = []
@@ -610,6 +615,17 @@ export default class FingerPaintingVisualizer extends THREE.Object3D {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId)
       this.animationId = null
+    }
+    
+    // Unregister all gesture callbacks to prevent calls on destroyed instance
+    if (App.gestureManager) {
+      App.gestureManager.onReset(null)
+      App.gestureManager.onFollow(null)
+      App.gestureManager.onPinch(null)
+      App.gestureManager.onSwipe(null)
+      App.gestureManager.onPaint(null)
+      App.gestureManager.onBrushSize(null)
+      App.gestureManager.onColorPalette(null)
     }
     
     // Remove canvas from DOM
