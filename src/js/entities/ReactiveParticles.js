@@ -196,8 +196,8 @@ export default class ReactiveParticles extends THREE.Object3D {
   }
   
   handlePlayGesture() {
-    if (App.audioManager && !App.audioManager.isPlaying) {
-      App.audioManager.play()
+    if (App.advancedAudioManager && !App.advancedAudioManager.isPlaying) {
+      App.advancedAudioManager.play()
       
       // Visual feedback - pulse effect
       gsap.to(this.material.uniforms.amplitude, {
@@ -211,8 +211,8 @@ export default class ReactiveParticles extends THREE.Object3D {
   }
   
   handleStopGesture() {
-    if (App.audioManager && App.audioManager.isPlaying) {
-      App.audioManager.pause()
+    if (App.advancedAudioManager && App.advancedAudioManager.isPlaying) {
+      App.advancedAudioManager.pause()
       
       // Visual feedback - fade effect
       gsap.to(this.material.uniforms.amplitude, {
@@ -385,7 +385,7 @@ export default class ReactiveParticles extends THREE.Object3D {
     // Calculate a reduced duration based on the BPM (beats per minute) duration
     const duration = App.bpmManager.getBPMDuration() / 1000
 
-    if (App.audioManager.isPlaying) {
+    if (App.advancedAudioManager.isPlaying) {
       // Randomly determine whether to rotate the holder object
       if (Math.random() < 0.3 && this.properties.autoRotate) {
         gsap.to(this.holderObjects.rotation, {
@@ -433,16 +433,16 @@ export default class ReactiveParticles extends THREE.Object3D {
   }
 
   update() {
-    if (App.audioManager?.isPlaying) {
+    if (App.advancedAudioManager?.isPlaying) {
       // Dynamically update amplitude based on the high frequency data from the audio manager
-      const baseAmplitude = 0.8 + THREE.MathUtils.mapLinear(App.audioManager.frequencyData.high, 0, 0.6, -0.1, 0.2)
+      const baseAmplitude = 0.8 + THREE.MathUtils.mapLinear(App.advancedAudioManager.frequencyData.high, 0, 0.6, -0.1, 0.2)
       this.material.uniforms.amplitude.value = baseAmplitude * this.gestureControls.intensityMultiplier
 
       // Update offset gain based on the low frequency data for subtle effect changes
-      this.material.uniforms.offsetGain.value = App.audioManager.frequencyData.mid * 0.6
+      this.material.uniforms.offsetGain.value = App.advancedAudioManager.frequencyData.mid * 0.6
 
       // Map low frequency data to a range and use it to increment the time uniform
-      const t = THREE.MathUtils.mapLinear(App.audioManager.frequencyData.low, 0.6, 1, 0.2, 0.5)
+      const t = THREE.MathUtils.mapLinear(App.advancedAudioManager.frequencyData.low, 0.6, 1, 0.2, 0.5)
       this.time += THREE.MathUtils.clamp(t, 0.2, 0.5) * this.gestureControls.rotationSpeed // Clamp the value to ensure it stays within a desired range
     } else {
       // Set default values for the uniforms when audio is not playing
