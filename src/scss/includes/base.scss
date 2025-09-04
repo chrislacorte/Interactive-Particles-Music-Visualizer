@@ -498,6 +498,96 @@ body #cdawrap {
   margin-top: 0.5rem;
 }
 
+/* Gesture Feedback Styles */
+.gesture-feedback {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  animation: gesturePopIn 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.gesture-feedback--play {
+  background: rgba(0, 255, 0, 0.2);
+  border: 1px solid rgba(0, 255, 0, 0.4);
+  color: #00ff00;
+}
+
+.gesture-feedback--stop {
+  background: rgba(255, 0, 0, 0.2);
+  border: 1px solid rgba(255, 0, 0, 0.4);
+  color: #ff4444;
+}
+
+.gesture-feedback--stop-pending {
+  background: rgba(255, 165, 0, 0.2);
+  border: 1px solid rgba(255, 165, 0, 0.4);
+  color: #ffa500;
+}
+
+.gesture-feedback--theme {
+  background: rgba(138, 43, 226, 0.2);
+  border: 1px solid rgba(138, 43, 226, 0.4);
+  color: #da70d6;
+}
+
+.gesture-feedback--reset {
+  background: rgba(0, 191, 255, 0.2);
+  border: 1px solid rgba(0, 191, 255, 0.4);
+  color: #00bfff;
+}
+
+.feedback-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.8;
+}
+
+.gesture-overlay {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.confidence-meter {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.confidence-bar {
+  height: 100%;
+  width: 0%;
+  background: #ff4444;
+  transition: width 0.1s ease, background 0.3s ease;
+  border-radius: 2px;
+}
+
+.current-theme {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+}
+
+.current-theme strong {
+  color: #da70d6;
+  font-weight: 600;
+}
+
 /* Animations */
 @keyframes slideIn {
   from {
@@ -519,6 +609,16 @@ body #cdawrap {
   }
 }
 
+@keyframes gesturePopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
 @media screen and (min-width: 53em) {
   .frame {
     position: fixed;

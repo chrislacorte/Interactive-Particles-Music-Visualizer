@@ -194,6 +194,78 @@ export default class ReactiveParticles extends THREE.Object3D {
     // Re-enable auto mix
     this.properties.autoMix = true
   }
+  
+  handlePlayGesture() {
+    if (App.audioManager && !App.audioManager.isPlaying) {
+      App.audioManager.play()
+      
+      // Visual feedback - pulse effect
+      gsap.to(this.material.uniforms.amplitude, {
+        duration: 0.3,
+        value: this.material.uniforms.amplitude.value * 1.5,
+        ease: 'power2.out',
+        yoyo: true,
+        repeat: 1
+      })
+    }
+  }
+  
+  handleStopGesture() {
+    if (App.audioManager && App.audioManager.isPlaying) {
+      App.audioManager.pause()
+      
+      // Visual feedback - fade effect
+      gsap.to(this.material.uniforms.amplitude, {
+        duration: 0.5,
+        value: 0.1,
+        ease: 'power2.out'
+      })
+      
+      // Gradually slow down rotation
+      if (this.holderObjects) {
+        gsap.to(this.holderObjects.rotation, {
+          duration: 2,
+          x: 0,
+          y: 0,
+          z: 0,
+          ease: 'power2.out'
+        })
+      }
+    }
+  }
+  
+  handleColorChangeGesture(theme) {
+    // Smooth color transition
+    gsap.to(this.material.uniforms.startColor.value, {
+      duration: 1,
+      r: ((theme.startColor >> 16) & 255) / 255,
+      g: ((theme.startColor >> 8) & 255) / 255,
+      b: (theme.startColor & 255) / 255,
+      ease: 'power2.inOut'
+    })
+    
+    gsap.to(this.material.uniforms.endColor.value, {
+      duration: 1,
+      r: ((theme.endColor >> 16) & 255) / 255,
+      g: ((theme.endColor >> 8) & 255) / 255,
+      b: (theme.endColor & 255) / 255,
+      ease: 'power2.inOut'
+    })
+    
+    // Update properties for GUI sync
+    this.properties.startColor = theme.startColor
+    this.properties.endColor = theme.endColor
+    
+    // Add sparkle effect during transition
+    gsap.to(this.material.uniforms.frequency, {
+      duration: 0.5,
+      value: this.material.uniforms.frequency.value * 1.8,
+      ease: 'power2.out',
+      yoyo: true,
+      repeat: 1
+    })
+  }
+  
   createBoxMesh() {
     // Randomly generate segment counts for width, height, and depth to create varied box geometries
     let widthSeg = Math.floor(THREE.MathUtils.randInt(5, 20))

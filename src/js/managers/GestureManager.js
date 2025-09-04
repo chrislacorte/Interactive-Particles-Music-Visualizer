@@ -21,7 +21,13 @@ export default class GestureManager {
       lastHandPosition: null,
       swipeDirection: null,
       poseDetected: false,
-      bodyLean: 0
+      bodyLean: 0,
+      // Media control gesture states
+      isPlayGesture: false,
+      isStopGesture: false,
+      lastGestureTime: 0,
+      gestureConfidence: 0,
+      gestureCooldown: false
     }
     
     // Gesture callbacks
@@ -30,7 +36,11 @@ export default class GestureManager {
       onSwipe: null,
       onBodyLean: null,
       onGestureStart: null,
-      onGestureEnd: null
+      onGestureEnd: null,
+      // Media control callbacks
+      onPlay: null,
+      onStop: null,
+      onColorChange: null
     }
     
     // Smoothing for gesture values
@@ -39,6 +49,33 @@ export default class GestureManager {
       pinchStrength: 0,
       swipeVelocity: 0,
       bodyLean: 0
+    }
+    
+    // Gesture recognition thresholds and settings
+    this.gestureThresholds = {
+      playConfidence: 0.7,
+      stopConfidence: 0.8,
+      swipeVelocity: 0.08,
+      cooldownDuration: 1000, // 1 second cooldown
+      confirmationDelay: 300   // 300ms confirmation for critical actions
+    }
+    
+    // Color themes for swipe functionality
+    this.colorThemes = [
+      { name: 'Neon', startColor: 0xff00ff, endColor: 0x00ffff },
+      { name: 'Fire', startColor: 0xff4500, endColor: 0xffd700 },
+      { name: 'Ocean', startColor: 0x0066cc, endColor: 0x00ffcc },
+      { name: 'Forest', startColor: 0x228b22, endColor: 0x90ee90 },
+      { name: 'Sunset', startColor: 0xff6347, endColor: 0xff1493 },
+      { name: 'Aurora', startColor: 0x9400d3, endColor: 0x00ff7f }
+    ]
+    this.currentThemeIndex = 0
+    
+    // Visual feedback state
+    this.feedbackState = {
+      activeGesture: null,
+      feedbackTimeout: null,
+      isTransitioning: false
     }
   }
 
@@ -72,19 +109,32 @@ export default class GestureManager {
           <div class="status-indicator"></div>
           <span class="status-text">Gestures Active</span>
         </div>
+        <div class="gesture-feedback" style="display: none;">
+          <div class="feedback-icon"></div>
+          <span class="feedback-text"></span>
+        </div>
       </div>
       <div class="gesture-preview" style="display: none;">
         <video class="gesture-video" autoplay muted playsinline></video>
         <canvas class="gesture-canvas"></canvas>
+        <div class="gesture-overlay">
+          <div class="confidence-meter">
+            <div class="confidence-bar"></div>
+          </div>
+        </div>
       </div>
       <div class="gesture-help" style="display: none;">
         <h3>Gesture Controls</h3>
         <ul>
-          <li><strong>Pinch:</strong> Zoom in/out on particles</li>
-          <li><strong>Swipe Left/Right:</strong> Change visualization mode</li>
-          <li><strong>Body Lean:</strong> Adjust particle intensity</li>
-          <li><strong>Open Palm:</strong> Reset to default view</li>
+          <li><strong>👍 Thumbs Up:</strong> Play/Resume music</li>
+          <li><strong>✋ Open Palm:</strong> Stop music (hold for 0.3s)</li>
+          <li><strong>👈👉 Swipe:</strong> Change color themes</li>
+          <li><strong>🤏 Pinch:</strong> Zoom particles</li>
+          <li><strong>🫴 Reset:</strong> All fingers extended</li>
         </ul>
+        <div class="current-theme">
+          <span>Current Theme: <strong id="currentThemeName">Neon</strong></span>
+        </div>
       </div>
     `
     
@@ -388,6 +438,19 @@ export default class GestureManager {
 
   onGestureEnd(callback) {
     this.callbacks.onGestureEnd = callback
+  }
+  
+  // Media control callback registration
+  onPlay(callback) {
+    this.callbacks.onPlay = callback
+  }
+  
+  onStop(callback) {
+    this.callbacks.onStop = callback
+  }
+  
+  onColorChange(callback) {
+    this.callbacks.onColorChange = callback
   }
 
   showError(message) {
