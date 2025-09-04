@@ -807,20 +807,6 @@ body #cdawrap {
   opacity: 0.6;
 }
 
-.nav-option[data-mode="breathing-dots"]::before {
-  content: '●●●';
-  display: block;
-  font-size: 0.7rem;
-  margin-bottom: 0.25rem;
-  opacity: 0.6;
-  animation: breathe 4s ease-in-out infinite;
-}
-
-@keyframes breathe {
-  0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.1); opacity: 0.9; }
-}
-
 /* Microphone Visualizer Styles */
 .microphone-canvas {
   cursor: crosshair;
