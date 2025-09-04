@@ -57,9 +57,17 @@ export default class FingerPaintingVisualizer extends THREE.Object3D {
       smoothedPosition: { x: 0, y: 0 },
       brushPressure: 1.0
     }
+    
+    // Initialization state
+    this.isInitialized = false
   }
 
   init() {
+    if (this.isInitialized) {
+      console.warn('FingerPaintingVisualizer already initialized')
+      return
+    }
+    
     App.holder.add(this)
     
     this.createCanvas()
@@ -68,10 +76,16 @@ export default class FingerPaintingVisualizer extends THREE.Object3D {
     this.startAnimation()
     this.addGUI()
     
+    this.isInitialized = true
     console.log('Finger Painting Visualizer initialized')
   }
 
   createCanvas() {
+    // Remove existing canvas if it exists
+    if (this.canvas && this.canvas.parentNode) {
+      this.canvas.parentNode.removeChild(this.canvas)
+    }
+    
     // Create main drawing canvas
     this.canvas = document.createElement('canvas')
     this.canvas.className = 'finger-painting-canvas'
@@ -87,6 +101,13 @@ export default class FingerPaintingVisualizer extends THREE.Object3D {
     `
     
     this.ctx = this.canvas.getContext('2d')
+    
+    // Verify context was successfully created
+    if (!this.ctx) {
+      console.error('Failed to get 2D rendering context for canvas')
+      return
+    }
+    
     this.resize()
     
     // Add to DOM
@@ -328,6 +349,12 @@ export default class FingerPaintingVisualizer extends THREE.Object3D {
   }
 
   drawSmoothLine(x1, y1, x2, y2, pressure = 1) {
+    // Guard clause to prevent null context errors
+    if (!this.ctx) {
+      console.warn('Canvas context is null, cannot draw')
+      return
+    }
+    
     const distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
     const steps = Math.max(1, Math.floor(distance / 2))
     
