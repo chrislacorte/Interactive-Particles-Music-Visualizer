@@ -1,3 +1,5 @@
+precision mediump float;
+
 uniform float time;
 uniform float audioLevel;
 uniform float bassLevel;
