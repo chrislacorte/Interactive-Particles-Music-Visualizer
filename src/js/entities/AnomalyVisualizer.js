@@ -41,6 +41,7 @@ export default class AnomalyVisualizer extends THREE.Object3D {
     this.createBackgroundParticles()
     this.setupInteraction()
     this.addGUI()
+    this.setupGestureControls()
   }
 
   createAnomalyObject() {
@@ -169,6 +170,79 @@ export default class AnomalyVisualizer extends THREE.Object3D {
 
     // Store material for updates
     this.particlesMaterial = particlesMaterial
+  }
+
+  setupGestureControls() {
+    if (App.gestureManager) {
+      // Setup gesture callbacks for anomaly visualizer
+      App.gestureManager.onSwipe((direction, velocity) => {
+        this.handleSwipeGesture(direction, velocity)
+      })
+      
+      App.gestureManager.onFollow((x, y, isActive) => {
+        this.handleFollowGesture(x, y, isActive)
+      })
+      
+      App.gestureManager.onReset(() => {
+        this.handleResetGesture()
+      })
+    }
+  }
+
+  handleSwipeGesture(direction, velocity) {
+    switch (direction) {
+      case 'left':
+        // Increase distortion
+        this.properties.distortionAmount = Math.min(this.properties.distortionAmount + 0.5, 3.0)
+        this.createAnomalyObject()
+        break
+      case 'right':
+        // Decrease distortion
+        this.properties.distortionAmount = Math.max(this.properties.distortionAmount - 0.5, 0.1)
+        this.createAnomalyObject()
+        break
+      case 'up':
+        // Increase particle count
+        this.properties.particleCount = Math.min(this.properties.particleCount + 500, 5000)
+        this.createBackgroundParticles()
+        break
+      case 'down':
+        // Decrease particle count
+        this.properties.particleCount = Math.max(this.properties.particleCount - 500, 1000)
+        this.createBackgroundParticles()
+        break
+    }
+  }
+
+  handleFollowGesture(x, y, isActive) {
+    if (isActive && this.anomalyObject) {
+      // Map normalized coordinates to world space
+      const worldX = x * 5
+      const worldY = y * 4
+      
+      // Update target position for smooth following
+      this.anomalyTargetPosition.x = worldX
+      this.anomalyTargetPosition.y = worldY
+      
+      // Add some velocity for dynamic movement
+      this.anomalyVelocity.x = x * 0.5
+      this.anomalyVelocity.y = y * 0.5
+    }
+  }
+
+  handleResetGesture() {
+    // Reset anomaly to center
+    this.anomalyTargetPosition.set(0, 0, 0)
+    this.anomalyVelocity.set(0, 0)
+    
+    // Reset properties
+    this.properties.distortionAmount = 1.0
+    this.properties.particleCount = 3000
+    this.properties.anomalyColor = 0xff4e42
+    
+    // Recreate objects with default settings
+    this.createAnomalyObject()
+    this.createBackgroundParticles()
   }
 
   setupInteraction() {

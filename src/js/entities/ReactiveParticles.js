@@ -21,7 +21,9 @@ export default class ReactiveParticles extends THREE.Object3D {
       zoomLevel: 1,
       rotationSpeed: 1,
       intensityMultiplier: 1,
-      basePosition: { x: 0, y: 0, z: 12 }
+      basePosition: { x: 0, y: 0, z: 12 },
+      followOffset: { x: 0, y: 0 },
+      isFollowing: false
     }
   }
 
@@ -72,6 +74,10 @@ export default class ReactiveParticles extends THREE.Object3D {
       App.gestureManager.onReset(() => {
         this.handleResetGesture()
       })
+      
+      App.gestureManager.onFollow((x, y, isActive) => {
+        this.handleFollowGesture(x, y, isActive)
+      })
     }
   }
 
@@ -98,16 +104,18 @@ export default class ReactiveParticles extends THREE.Object3D {
   handleSwipeGesture(direction, velocity) {
     switch (direction) {
       case 'left':
-        // Switch to box mesh
+        // Switch to box mesh and change colors
         this.destroyMesh()
         this.createBoxMesh()
         this.properties.autoMix = false
+        this.cycleColorTheme(-1)
         break
       case 'right':
-        // Switch to cylinder mesh
+        // Switch to cylinder mesh and change colors
         this.destroyMesh()
         this.createCylinderMesh()
         this.properties.autoMix = false
+        this.cycleColorTheme(1)
         break
       case 'up':
         // Increase particle intensity
@@ -126,6 +134,104 @@ export default class ReactiveParticles extends THREE.Object3D {
         })
         break
     }
+  }
+
+  handleFollowGesture(x, y, isActive) {
+    this.gestureControls.isFollowing = isActive
+    
+    if (isActive) {
+      // Map normalized coordinates (-1 to 1) to world space
+      const worldX = x * 8 // Scale to reasonable world coordinates
+      const worldY = y * 6
+      
+      // Smooth the follow movement
+      this.gestureControls.followOffset.x = worldX
+      this.gestureControls.followOffset.y = worldY
+      
+      // Apply the offset to the particle system
+      if (this.holderObjects) {
+        gsap.to(this.holderObjects.position, {
+          duration: 0.1,
+          x: worldX,
+          y: worldY,
+          ease: 'power2.out'
+        })
+      }
+      
+      // Add visual feedback - increase particle activity when following
+      gsap.to(this.material.uniforms.frequency, {
+        duration: 0.2,
+        value: 2.5 + Math.abs(x) + Math.abs(y),
+        ease: 'power2.out'
+      })
+    } else {
+      // Return to center when not following
+      if (this.holderObjects) {
+        gsap.to(this.holderObjects.position, {
+          duration: 0.8,
+          x: 0,
+          y: 0,
+          ease: 'elastic.out(1, 0.3)'
+        })
+      }
+      
+      // Reset frequency
+      gsap.to(this.material.uniforms.frequency, {
+        duration: 0.5,
+        value: 2,
+        ease: 'power2.out'
+      })
+    }
+  }
+
+  cycleColorTheme(direction) {
+    const colorThemes = [
+      { start: 0xff00ff, end: 0x00ffff, name: 'Neon' },
+      { start: 0xff4500, end: 0xffd700, name: 'Fire' },
+      { start: 0x0066cc, end: 0x00ffcc, name: 'Ocean' },
+      { start: 0x228b22, end: 0x90ee90, name: 'Forest' },
+      { start: 0xff6347, end: 0xff1493, name: 'Sunset' },
+      { start: 0x9400d3, end: 0x00ff7f, name: 'Aurora' }
+    ]
+    
+    // Find current theme index
+    let currentIndex = 0
+    for (let i = 0; i < colorThemes.length; i++) {
+      if (colorThemes[i].start === this.properties.startColor) {
+        currentIndex = i
+        break
+      }
+    }
+    
+    // Calculate new index
+    let newIndex = currentIndex + direction
+    if (newIndex < 0) newIndex = colorThemes.length - 1
+    if (newIndex >= colorThemes.length) newIndex = 0
+    
+    const newTheme = colorThemes[newIndex]
+    
+    // Smooth color transition
+    gsap.to(this.material.uniforms.startColor.value, {
+      duration: 1,
+      r: ((newTheme.start >> 16) & 255) / 255,
+      g: ((newTheme.start >> 8) & 255) / 255,
+      b: (newTheme.start & 255) / 255,
+      ease: 'power2.inOut'
+    })
+    
+    gsap.to(this.material.uniforms.endColor.value, {
+      duration: 1,
+      r: ((newTheme.end >> 16) & 255) / 255,
+      g: ((newTheme.end >> 8) & 255) / 255,
+      b: (newTheme.end & 255) / 255,
+      ease: 'power2.inOut'
+    })
+    
+    // Update properties for GUI sync
+    this.properties.startColor = newTheme.start
+    this.properties.endColor = newTheme.end
+    
+    console.log(`Switched to ${newTheme.name} theme`)
   }
 
   handleBodyLeanGesture(lean) {
@@ -153,6 +259,8 @@ export default class ReactiveParticles extends THREE.Object3D {
     // Reset all gesture-controlled parameters
     this.gestureControls.zoomLevel = 1
     this.gestureControls.intensityMultiplier = 1
+    this.gestureControls.isFollowing = false
+    this.gestureControls.followOffset = { x: 0, y: 0 }
     
     // Reset camera position
     gsap.to(App.camera?.position || {}, {
@@ -501,5 +609,6 @@ export default class ReactiveParticles extends THREE.Object3D {
     gestureFolder.add(this.gestureControls, 'zoomLevel', 0.1, 3).name('Zoom Level').listen()
     gestureFolder.add(this.gestureControls, 'rotationSpeed', 0.1, 3).name('Rotation Speed').listen()
     gestureFolder.add(this.gestureControls, 'intensityMultiplier', 0.1, 3).name('Intensity Multiplier').listen()
+    gestureFolder.add(this.gestureControls, 'isFollowing').name('Following Active').listen()
   }
 }
