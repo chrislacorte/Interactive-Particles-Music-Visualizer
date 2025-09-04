@@ -25,6 +25,12 @@ export default class GestureManager {
       isFollowing: false,
       followPosition: { x: 0, y: 0 },
       smoothedFollowPosition: { x: 0, y: 0 },
+      // Enhanced gesture states
+      isPainting: false,
+      paintingConfidence: 0,
+      gestureHistory: [],
+      handVelocity: { x: 0, y: 0 },
+      smoothedVelocity: { x: 0, y: 0 },
       // Media control gesture states
       isPlayGesture: false,
       isStopGesture: false,
@@ -41,6 +47,9 @@ export default class GestureManager {
       onGestureStart: null,
       onGestureEnd: null,
       onFollow: null,
+      onPaint: null,
+      onBrushSize: null,
+      onColorPalette: null,
       // Media control callbacks
       onPlay: null,
       onStop: null,
@@ -52,7 +61,9 @@ export default class GestureManager {
     this.smoothedValues = {
       pinchStrength: 0,
       swipeVelocity: 0,
-      bodyLean: 0
+      bodyLean: 0,
+      paintingPressure: 0,
+      brushSize: 0.5
     }
     
     // Gesture recognition thresholds and settings
@@ -62,7 +73,10 @@ export default class GestureManager {
       swipeVelocity: 0.05,
       cooldownDuration: 1000, // 1 second cooldown
       confirmationDelay: 300,   // 300ms confirmation for critical actions
-      followSmoothingFactor: 0.7
+      followSmoothingFactor: 0.7,
+      paintingThreshold: 0.8,
+      velocityThreshold: 0.02,
+      pressureThreshold: 0.3
     }
     
     // Color themes for swipe functionality
@@ -310,8 +324,26 @@ export default class GestureManager {
       if (this.callbacks.onPinch) {
         this.callbacks.onPinch(this.smoothedValues.pinchStrength)
       }
+      
+      // Enhanced brush size control
+      if (this.callbacks.onBrushSize) {
+        this.callbacks.onBrushSize(this.smoothedValues.pinchStrength)
+      }
     } else {
       this.gestureState.isPinching = false
+    }
+
+    // Enhanced painting gesture detection
+    const paintingData = this.detectPaintingGesture(landmarks)
+    if (paintingData.isPainting) {
+      this.gestureState.isPainting = true
+      this.gestureState.paintingConfidence = paintingData.confidence
+      
+      if (this.callbacks.onPaint) {
+        this.callbacks.onPaint(paintingData.position.x, paintingData.position.y, paintingData.pressure)
+      }
+    } else {
+      this.gestureState.isPainting = false
     }
 
     // Detect swipe gesture
@@ -322,6 +354,11 @@ export default class GestureManager {
       
       if (this.callbacks.onSwipe) {
         this.callbacks.onSwipe(swipeData.direction, swipeData.velocity)
+      }
+      
+      // Enhanced color palette switching
+      if (this.callbacks.onColorPalette) {
+        this.callbacks.onColorPalette(swipeData.direction)
       }
       
       this.showGestureFeedback('swipe', `Swipe ${swipeData.direction}`)
@@ -348,6 +385,23 @@ export default class GestureManager {
       // Convert MediaPipe coordinates (0-1) to normalized screen coordinates (-1 to 1)
       const normalizedX = (indexTip.x - 0.5) * 2
       const normalizedY = (0.5 - indexTip.y) * 2 // Flip Y axis
+      
+      // Calculate velocity for enhanced interaction
+      const deltaX = normalizedX - this.gestureState.followPosition.x
+      const deltaY = normalizedY - this.gestureState.followPosition.y
+      
+      this.gestureState.handVelocity.x = deltaX
+      this.gestureState.handVelocity.y = deltaY
+      
+      // Smooth velocity
+      this.gestureState.smoothedVelocity.x = this.smoothValue(
+        this.gestureState.smoothedVelocity.x, 
+        this.gestureState.handVelocity.x
+      )
+      this.gestureState.smoothedVelocity.y = this.smoothValue(
+        this.gestureState.smoothedVelocity.y, 
+        this.gestureState.handVelocity.y
+      )
       
       // Update follow position
       this.gestureState.followPosition.x = normalizedX
@@ -385,6 +439,57 @@ export default class GestureManager {
           this.gestureState.isFollowing
         )
       }
+    }
+  }
+
+  detectPaintingGesture(landmarks) {
+    // Enhanced painting detection using index finger
+    const indexTip = landmarks[8]
+    const indexMcp = landmarks[5]
+    const thumbTip = landmarks[4]
+    
+    if (!indexTip || !indexMcp || !thumbTip) {
+      return { isPainting: false, confidence: 0, position: { x: 0, y: 0 }, pressure: 0 }
+    }
+    
+    // Check if index finger is extended and prominent
+    const isIndexExtended = this.isFingerExtended(landmarks, 8)
+    const isMiddleExtended = this.isFingerExtended(landmarks, 12)
+    const isRingExtended = this.isFingerExtended(landmarks, 16)
+    const isPinkyExtended = this.isFingerExtended(landmarks, 20)
+    
+    // Painting gesture: index finger extended, others curled
+    const isPaintingPose = isIndexExtended && !isMiddleExtended && !isRingExtended && !isPinkyExtended
+    
+    // Calculate confidence based on finger positions
+    let confidence = 0
+    if (isPaintingPose) {
+      confidence = 0.8
+      
+      // Increase confidence if thumb is also extended (pointing gesture)
+      const isThumbExtended = this.isFingerExtended(landmarks, 4)
+      if (!isThumbExtended) {
+        confidence += 0.2
+      }
+    }
+    
+    // Calculate pressure based on hand stability and velocity
+    const velocity = Math.sqrt(
+      this.gestureState.smoothedVelocity.x ** 2 + 
+      this.gestureState.smoothedVelocity.y ** 2
+    )
+    
+    const pressure = Math.max(0.1, Math.min(1.0, 1.0 - velocity * 10))
+    
+    // Convert to normalized coordinates
+    const normalizedX = (indexTip.x - 0.5) * 2
+    const normalizedY = (0.5 - indexTip.y) * 2
+    
+    return {
+      isPainting: confidence > this.gestureThresholds.paintingThreshold,
+      confidence: confidence,
+      position: { x: normalizedX, y: normalizedY },
+      pressure: pressure
     }
   }
 
@@ -520,6 +625,18 @@ export default class GestureManager {
 
   onFollow(callback) {
     this.callbacks.onFollow = callback
+  }
+
+  onPaint(callback) {
+    this.callbacks.onPaint = callback
+  }
+
+  onBrushSize(callback) {
+    this.callbacks.onBrushSize = callback
+  }
+
+  onColorPalette(callback) {
+    this.callbacks.onColorPalette = callback
   }
 
   onGestureStart(callback) {

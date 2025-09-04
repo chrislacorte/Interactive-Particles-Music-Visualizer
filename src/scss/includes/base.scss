@@ -760,9 +760,27 @@ body #cdawrap {
   opacity: 0.6;
 }
 
+.nav-option[data-mode="finger-painting"]::before {
+  content: '🎨';
+  display: block;
+  font-size: 0.7rem;
+  margin-bottom: 0.25rem;
+  opacity: 0.6;
+}
+
 /* Microphone Visualizer Styles */
 .microphone-canvas {
   cursor: crosshair;
+}
+
+/* Finger Painting Visualizer Styles */
+.finger-painting-canvas {
+  cursor: crosshair;
+  touch-action: none; /* Prevent scrolling on touch devices */
+}
+
+.finger-painting-canvas:active {
+  cursor: none; /* Hide cursor while painting */
 }
 
 .microphone-error .error-content {

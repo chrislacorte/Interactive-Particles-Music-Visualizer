@@ -78,6 +78,19 @@ export default class ReactiveParticles extends THREE.Object3D {
       App.gestureManager.onFollow((x, y, isActive) => {
         this.handleFollowGesture(x, y, isActive)
       })
+      
+      // Enhanced gesture controls
+      App.gestureManager.onPaint((x, y, pressure) => {
+        this.handlePaintGesture(x, y, pressure)
+      })
+      
+      App.gestureManager.onBrushSize((size) => {
+        this.handleBrushSizeGesture(size)
+      })
+      
+      App.gestureManager.onColorPalette((direction) => {
+        this.handleColorPaletteGesture(direction)
+      })
     }
   }
 
@@ -301,6 +314,69 @@ export default class ReactiveParticles extends THREE.Object3D {
     
     // Re-enable auto mix
     this.properties.autoMix = true
+  }
+  
+  handlePaintGesture(x, y, pressure) {
+    // Create painting effect on particles
+    const worldX = x * 8
+    const worldY = y * 6
+    
+    // Add localized particle intensity
+    gsap.to(this.material.uniforms.amplitude, {
+      duration: 0.1,
+      value: this.material.uniforms.amplitude.value + pressure * 0.5,
+      ease: 'power2.out',
+      yoyo: true,
+      repeat: 1
+    })
+    
+    // Create ripple effect at paint position
+    if (this.holderObjects) {
+      const ripple = new THREE.Object3D()
+      ripple.position.set(worldX, worldY, 0)
+      this.holderObjects.add(ripple)
+      
+      gsap.to(ripple.scale, {
+        duration: 0.5,
+        x: 2,
+        y: 2,
+        z: 2,
+        ease: 'power2.out'
+      })
+      
+      gsap.to(ripple.position, {
+        duration: 0.5,
+        z: 2,
+        ease: 'power2.out',
+        onComplete: () => {
+          this.holderObjects.remove(ripple)
+        }
+      })
+    }
+  }
+  
+  handleBrushSizeGesture(size) {
+    // Map brush size to particle size
+    const targetSize = 1.1 + size * 2
+    gsap.to(this.material.uniforms.size, {
+      duration: 0.2,
+      value: targetSize,
+      ease: 'power2.out'
+    })
+  }
+  
+  handleColorPaletteGesture(direction) {
+    // Enhanced color cycling with smooth transitions
+    this.cycleColorTheme(direction === 'left' ? -1 : 1)
+    
+    // Add visual feedback
+    gsap.to(this.material.uniforms.frequency, {
+      duration: 0.3,
+      value: this.material.uniforms.frequency.value * 1.5,
+      ease: 'power2.out',
+      yoyo: true,
+      repeat: 1
+    })
   }
   
   handlePlayGesture() {

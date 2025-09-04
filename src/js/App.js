@@ -4,6 +4,7 @@ import AnomalyVisualizer from './entities/AnomalyVisualizer'
 import AudioReactiveVisualizer from './entities/AudioReactiveVisualizer'
 import DistortionVisualizer from './entities/DistortionVisualizer'
 import MicrophoneVisualizer from './entities/MicrophoneVisualizer'
+import FingerPaintingVisualizer from './entities/FingerPaintingVisualizer'
 import * as dat from 'dat.gui'
 import BPMManager from './managers/BPMManager'
 import AdvancedAudioManager from './managers/AdvancedAudioManager'
@@ -30,6 +31,7 @@ export default class App {
   static audioReactiveVisualizer = null
   static distortionVisualizer = null
   static microphoneVisualizer = null
+  static fingerPaintingVisualizer = null
 
   constructor() {
     this.onClickBinder = () => this.init()
@@ -98,10 +100,14 @@ export default class App {
     
     App.microphoneVisualizer = new MicrophoneVisualizer()
     
+    App.fingerPaintingVisualizer = new FingerPaintingVisualizer()
+    App.fingerPaintingVisualizer.init()
+    
     // Start with particles mode, hide anomaly visualizer
     App.anomalyVisualizer.visible = false
     App.audioReactiveVisualizer.visible = false
     App.distortionVisualizer.visible = false
+    App.fingerPaintingVisualizer.visible = false
 
     App.bpmManager = new BPMManager()
     App.bpmManager.addEventListener('beat', () => {
@@ -145,8 +151,14 @@ export default class App {
       App.microphoneVisualizer.destroy()
     }
     
+    // Handle finger painting mode cleanup
+    if (previousMode === 'finger-painting' && App.fingerPaintingVisualizer) {
+      App.fingerPaintingVisualizer.destroy()
+      App.fingerPaintingVisualizer.init() // Reinitialize for next use
+    }
+    
     // Stop/start audio manager based on mode
-    if (newMode === 'microphone') {
+    if (newMode === 'microphone' || newMode === 'finger-painting') {
       if (App.advancedAudioManager && App.advancedAudioManager.isPlaying) {
         App.advancedAudioManager.pause()
       }
@@ -161,6 +173,7 @@ export default class App {
     if (App.anomalyVisualizer) App.anomalyVisualizer.visible = false
     if (App.audioReactiveVisualizer) App.audioReactiveVisualizer.visible = false
     if (App.distortionVisualizer) App.distortionVisualizer.visible = false
+    if (App.fingerPaintingVisualizer) App.fingerPaintingVisualizer.visible = false
     
     // Switch visualization based on the selected mode
     switch (newMode) {
@@ -200,6 +213,12 @@ export default class App {
         
       case 'distortion':
         App.distortionVisualizer.visible = true
+        break
+        
+      case 'finger-painting':
+        App.fingerPaintingVisualizer.visible = true
+        // Clear previous painting when entering mode
+        App.fingerPaintingVisualizer.clearCanvas()
         break
         
       case 'microphone':
@@ -264,6 +283,11 @@ export default class App {
     
     if (App.distortionVisualizer?.visible) {
       App.distortionVisualizer.update()
+    }
+    
+    if (App.fingerPaintingVisualizer?.visible) {
+      // Finger painting visualizer handles its own animation loop
+      // Just ensure it's receiving audio data
     }
     
     App.advancedAudioManager.update()
