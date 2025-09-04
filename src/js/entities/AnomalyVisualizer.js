@@ -1,11 +1,11 @@
 import * as THREE from 'three'
 import gsap from 'gsap'
-import anomalyVertex from './glsl/anomaly-vertex.glsl'
-import anomalyFragment from './glsl/anomaly-fragment.glsl'
-import glowVertex from './glsl/glow-vertex.glsl'
-import glowFragment from './glsl/glow-fragment.glsl'
-import backgroundParticlesVertex from './glsl/background-particles-vertex.glsl'
-import backgroundParticlesFragment from './glsl/background-particles-fragment.glsl'
+import anomalyVertex from './glsl/anomaly-vertex.glsl?raw'
+import anomalyFragment from './glsl/anomaly-fragment.glsl?raw'
+import glowVertex from './glsl/glow-vertex.glsl?raw'
+import glowFragment from './glsl/glow-fragment.glsl?raw'
+import backgroundParticlesVertex from './glsl/background-particles-vertex.glsl?raw'
+import backgroundParticlesFragment from './glsl/background-particles-fragment.glsl?raw'
 import App from '../App'
 
 export default class AnomalyVisualizer extends THREE.Object3D {

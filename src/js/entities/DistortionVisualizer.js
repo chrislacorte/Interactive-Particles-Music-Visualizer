@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import gsap from 'gsap'
-import distortionVertex from './glsl/distortion-vertex.glsl'
-import distortionFragment from './glsl/distortion-fragment.glsl'
+import distortionVertex from './glsl/distortion-vertex.glsl?raw'
+import distortionFragment from './glsl/distortion-fragment.glsl?raw'
 import App from '../App'
 
 export default class DistortionVisualizer extends THREE.Object3D {
