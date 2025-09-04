@@ -752,6 +752,56 @@ body #cdawrap {
   opacity: 0.6;
 }
 
+.nav-option[data-mode="microphone"]::before {
+  content: '🎤';
+  display: block;
+  font-size: 0.7rem;
+  margin-bottom: 0.25rem;
+  opacity: 0.6;
+}
+
+/* Microphone Visualizer Styles */
+.microphone-canvas {
+  cursor: crosshair;
+}
+
+.microphone-error .error-content {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  max-width: 400px;
+}
+
+.microphone-error h3 {
+  margin: 0 0 1rem 0;
+  color: #ff6b6b;
+  font-size: 1.2rem;
+}
+
+.microphone-error p {
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.microphone-error button {
+  background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.microphone-error button:hover {
+  background: linear-gradient(135deg, #ff5252, #ff7979);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
 @keyframes activeGlow {
   0% {
     opacity: 0.3;

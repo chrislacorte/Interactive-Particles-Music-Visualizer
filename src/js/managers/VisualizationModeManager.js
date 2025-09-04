@@ -1,7 +1,7 @@
 export default class VisualizationModeManager {
   constructor() {
     this.currentMode = 'particles'
-    this.modes = ['particles', 'circles', 'lines', 'anomaly', 'audio-reactive', 'distortion']
+    this.modes = ['particles', 'circles', 'lines', 'anomaly', 'audio-reactive', 'distortion', 'microphone']
     this.onModeChangeCallback = null
     this.navOptions = null
     this.isInitialized = false

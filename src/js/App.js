@@ -3,6 +3,7 @@ import ReativeParticles from './entities/ReactiveParticles'
 import AnomalyVisualizer from './entities/AnomalyVisualizer'
 import AudioReactiveVisualizer from './entities/AudioReactiveVisualizer'
 import DistortionVisualizer from './entities/DistortionVisualizer'
+import MicrophoneVisualizer from './entities/MicrophoneVisualizer'
 import * as dat from 'dat.gui'
 import BPMManager from './managers/BPMManager'
 import AdvancedAudioManager from './managers/AdvancedAudioManager'
@@ -28,6 +29,7 @@ export default class App {
   static anomalyVisualizer = null
   static audioReactiveVisualizer = null
   static distortionVisualizer = null
+  static microphoneVisualizer = null
 
   constructor() {
     this.onClickBinder = () => this.init()
@@ -94,6 +96,8 @@ export default class App {
     App.distortionVisualizer = new DistortionVisualizer()
     App.distortionVisualizer.init()
     
+    App.microphoneVisualizer = new MicrophoneVisualizer()
+    
     // Start with particles mode, hide anomaly visualizer
     App.anomalyVisualizer.visible = false
     App.audioReactiveVisualizer.visible = false
@@ -119,7 +123,6 @@ export default class App {
     }
     document.querySelector('.user_interaction').remove()
 
-    App.advancedAudioManager.play()
 
 
     // Initialize visualization mode manager and set up mode change callback
@@ -136,6 +139,22 @@ export default class App {
     
     // Temporarily disable mode switching during transition
     App.visualizationModeManager.setEnabled(false)
+    
+    // Handle microphone mode cleanup
+    if (previousMode === 'microphone' && App.microphoneVisualizer) {
+      App.microphoneVisualizer.destroy()
+    }
+    
+    // Stop/start audio manager based on mode
+    if (newMode === 'microphone') {
+      if (App.advancedAudioManager && App.advancedAudioManager.isPlaying) {
+        App.advancedAudioManager.pause()
+      }
+    } else {
+      if (App.advancedAudioManager && !App.advancedAudioManager.isPlaying) {
+        App.advancedAudioManager.play()
+      }
+    }
     
     // Hide all visualizers first
     if (App.particles) App.particles.visible = false
@@ -181,6 +200,19 @@ export default class App {
         
       case 'distortion':
         App.distortionVisualizer.visible = true
+        break
+        
+      case 'microphone':
+        // Initialize microphone visualizer when selected
+        if (App.microphoneVisualizer) {
+          App.microphoneVisualizer.init().catch(error => {
+            console.error('Failed to initialize microphone visualizer:', error)
+            // Fallback to particles mode
+            setTimeout(() => {
+              App.visualizationModeManager.setMode('particles')
+            }, 100)
+          })
+        }
         break
         
       default:
