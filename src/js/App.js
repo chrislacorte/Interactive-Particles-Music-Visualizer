@@ -12,6 +12,7 @@ import FileUploadManager from './managers/FileUploadManager'
 import GestureManager from './managers/GestureManager'
 import VisualizationModeManager from './managers/VisualizationModeManager'
 import ColorSyncManager from './managers/ColorSyncManager'
+import ColorBarManager from './managers/ColorBarManager'
 
 export default class App {
   //THREE objects
@@ -26,6 +27,7 @@ export default class App {
   static gestureManager = null
   static visualizationModeManager = null
   static colorSyncManager = null
+  static colorBarManager = null
   
   //Visual entities
   static particles = null
@@ -76,6 +78,15 @@ export default class App {
   async createManagers() {
     // Initialize color synchronization manager first
     App.colorSyncManager = new ColorSyncManager()
+    
+    // Initialize color bar manager
+    App.colorBarManager = new ColorBarManager()
+    App.colorBarManager.init()
+    
+    // Connect color bar to color sync manager
+    App.colorBarManager.onColorChange((color, colorString, hue) => {
+      App.colorSyncManager.updateColor('primary', color, 'ColorBar')
+    })
     
     // Initialize file upload manager
     App.fileUploadManager = new FileUploadManager()

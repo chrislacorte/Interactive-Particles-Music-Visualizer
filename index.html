@@ -82,6 +82,33 @@
           </div>
         </div>
       </div>
+      
+      <!-- Dynamic Color Bar Interface -->
+      <div class="color-bar-container">
+        <div class="color-bar-header">
+          <h3>Color Selection</h3>
+          <div class="current-color-display">
+            <div class="color-preview" id="colorPreview"></div>
+            <span class="color-value" id="colorValue">#ff00ff</span>
+          </div>
+        </div>
+        <div class="color-bar-wrapper">
+          <div class="color-bar" id="colorBar">
+            <div class="color-point" id="colorPoint" tabindex="0" role="slider" 
+                 aria-label="Color selector" aria-valuemin="0" aria-valuemax="360" aria-valuenow="300">
+              <div class="color-point-inner"></div>
+            </div>
+          </div>
+        </div>
+        <div class="color-bar-labels">
+          <span>Red</span>
+          <span>Yellow</span>
+          <span>Green</span>
+          <span>Cyan</span>
+          <span>Blue</span>
+          <span>Magenta</span>
+        </div>
+      </div>
     </main>
   </body>
 </html>
