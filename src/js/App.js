@@ -140,14 +140,8 @@ export default class App {
     switch (newMode) {
       case 'particles':
         App.particles.visible = true
-        App.particles.destroyMesh()
-        // Use existing random mesh creation logic
-        if (Math.random() < 0.5) {
-          App.particles.createCylinderMesh()
-        } else {
-          App.particles.createBoxMesh()
-        }
         App.particles.properties.autoMix = true
+        App.particles.resetMesh()
         break
         
       case 'circles':
@@ -160,12 +154,7 @@ export default class App {
       case 'lines':
         App.particles.visible = true
         App.particles.destroyMesh()
-        if (typeof App.particles.createPointLinesMesh === 'function') {
-          App.particles.createPointLinesMesh()
-        } else {
-          // Fallback to box mesh if point lines not implemented yet
-          App.particles.createBoxMesh()
-        }
+        App.particles.createBoxMesh()
         App.particles.properties.autoMix = false
         break
         
@@ -185,6 +174,9 @@ export default class App {
         
       default:
         console.warn(`Unknown visualization mode: ${newMode}`)
+        // Fallback to particles mode
+        App.particles.visible = true
+        App.particles.properties.autoMix = true
         break
     }
     
