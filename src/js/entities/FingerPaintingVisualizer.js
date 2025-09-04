@@ -546,6 +546,13 @@ export default class FingerPaintingVisualizer extends THREE.Object3D {
     paintingFolder
       .addColor(this.properties, 'brushColor')
       .name('Brush Color')
+      .onChange((color) => {
+        // Sync to global color manager
+        if (App.colorSyncManager) {
+          const hexColor = parseInt(color.replace('#', ''), 16)
+          App.colorSyncManager.updateColor('primary', hexColor, 'FingerPaintingVisualizer')
+        }
+      })
 
     paintingFolder
       .add(this.properties, 'glowIntensity', 0, 20)

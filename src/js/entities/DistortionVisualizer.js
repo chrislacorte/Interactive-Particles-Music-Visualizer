@@ -372,6 +372,10 @@ export default class DistortionVisualizer extends THREE.Object3D {
       .name('Base Color')
       .onChange((color) => {
         this.material.uniforms.baseColor.value = new THREE.Color(color)
+        // Sync to global color manager
+        if (App.colorSyncManager) {
+          App.colorSyncManager.updateColor('primary', color, 'DistortionVisualizer')
+        }
       })
 
     distortionFolder
@@ -379,6 +383,10 @@ export default class DistortionVisualizer extends THREE.Object3D {
       .name('Accent Color')
       .onChange((color) => {
         this.material.uniforms.accentColor.value = new THREE.Color(color)
+        // Sync to global color manager
+        if (App.colorSyncManager) {
+          App.colorSyncManager.updateColor('secondary', color, 'DistortionVisualizer')
+        }
       })
 
     const resetButton = {
