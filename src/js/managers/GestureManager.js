@@ -14,6 +14,9 @@ export default class GestureManager {
     this.canvasElement = null
     this.canvasCtx = null
     
+    // Webcam display mode
+    this.webcamMode = 'small' // 'hidden', 'small', 'background', 'bottom-left'
+    
     // Gesture state tracking
     this.gestureState = {
       isPinching: false,
@@ -161,10 +164,93 @@ export default class GestureManager {
     
     document.querySelector('.frame').appendChild(gestureContainer)
     
+    // Create webcam controls
+    this.createWebcamControls()
+    
     // Setup toggle button
     document.getElementById('gestureToggle').addEventListener('click', () => {
       this.toggleGestures()
     })
+  }
+
+  createWebcamControls() {
+    const webcamControls = document.createElement('div')
+    webcamControls.className = 'webcam-controls'
+    webcamControls.innerHTML = `
+      <h3>Webcam Display</h3>
+      <div class="webcam-mode-options">
+        <div class="webcam-mode-option" data-mode="hidden">
+          Hidden
+        </div>
+        <div class="webcam-mode-option active" data-mode="small">
+          Small Size
+        </div>
+        <div class="webcam-mode-option" data-mode="background">
+          Background
+        </div>
+        <div class="webcam-mode-option" data-mode="bottom-left">
+          Bottom Left Corner
+        </div>
+      </div>
+    `
+    
+    document.querySelector('.frame').appendChild(webcamControls)
+    
+    // Setup webcam mode selection
+    const modeOptions = webcamControls.querySelectorAll('.webcam-mode-option')
+    modeOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        const mode = option.getAttribute('data-mode')
+        this.setWebcamMode(mode)
+        
+        // Update active state
+        modeOptions.forEach(opt => opt.classList.remove('active'))
+        option.classList.add('active')
+      })
+    })
+  }
+
+  setWebcamMode(mode) {
+    this.webcamMode = mode
+    
+    const videoElement = document.querySelector('.gesture-video')
+    const canvasElement = document.querySelector('.gesture-canvas')
+    const previewElement = document.querySelector('.gesture-preview')
+    
+    if (!videoElement || !canvasElement || !previewElement) {
+      return
+    }
+    
+    // Remove all existing mode classes
+    const modes = ['webcam-hidden', 'webcam-small', 'webcam-background', 'webcam-bottom-left']
+    modes.forEach(modeClass => {
+      videoElement.classList.remove(modeClass)
+      canvasElement.classList.remove(modeClass)
+      previewElement.classList.remove(modeClass)
+    })
+    
+    // Apply new mode class
+    const modeClass = `webcam-${mode}`
+    videoElement.classList.add(modeClass)
+    canvasElement.classList.add(modeClass)
+    previewElement.classList.add(modeClass)
+    
+    // Update canvas size for drawing
+    if (mode === 'background') {
+      canvasElement.width = window.innerWidth
+      canvasElement.height = window.innerHeight
+    } else if (mode === 'bottom-left') {
+      canvasElement.width = 200
+      canvasElement.height = 150
+    } else if (mode === 'small') {
+      canvasElement.width = 160
+      canvasElement.height = 120
+    } else {
+      canvasElement.width = 320
+      canvasElement.height = 240
+    }
+    
+    console.log(`Webcam mode changed to: ${mode}`)
   }
 
   async setupMediaPipe() {
@@ -252,6 +338,9 @@ export default class GestureManager {
         statusEl.style.display = 'flex'
         previewEl.style.display = 'block'
         helpEl.style.display = 'block'
+        
+        // Apply current webcam mode
+        this.setWebcamMode(this.webcamMode)
         
         if (this.callbacks.onGestureStart) {
           this.callbacks.onGestureStart()
