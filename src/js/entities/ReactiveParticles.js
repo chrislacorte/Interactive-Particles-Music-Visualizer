@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import gsap from 'gsap'
-import vertex from './glsl/vertex.glsl'
-import fragment from './glsl/fragment.glsl'
+import vertex from './glsl/vertex.glsl?raw'
+import fragment from './glsl/fragment.glsl?raw'
 import App from '../App'
 
 export default class ReactiveParticles extends THREE.Object3D {

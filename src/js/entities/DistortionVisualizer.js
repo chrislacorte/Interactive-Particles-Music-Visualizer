@@ -330,6 +330,34 @@ export default class DistortionVisualizer extends THREE.Object3D {
       }
     }
   }
+  
+  setupColorSync() {
+    if (App.colorSyncManager) {
+      App.colorSyncManager.subscribe(
+        'DistortionVisualizer',
+        (colors) => this.onColorsUpdated(colors),
+        ['primary', 'secondary']
+      )
+    }
+  }
+  
+  onColorsUpdated(colors) {
+    if (colors.primary !== undefined) {
+      this.properties.baseColor = colors.primary
+      if (this.material) {
+        this.material.uniforms.baseColor.value = new THREE.Color(colors.primary)
+      }
+    }
+    
+    if (colors.secondary !== undefined) {
+      this.properties.accentColor = colors.secondary
+      if (this.material) {
+        this.material.uniforms.accentColor.value = new THREE.Color(colors.secondary)
+      }
+    }
+    
+    console.log('DistortionVisualizer: Colors updated', colors)
+  }
 
   addGUI() {
     if (!App.gui) return
