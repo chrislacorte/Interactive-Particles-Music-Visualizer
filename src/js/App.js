@@ -1,9 +1,10 @@
 import * as THREE from 'three'
 import ReativeParticles from './entities/ReactiveParticles'
 import AnomalyVisualizer from './entities/AnomalyVisualizer'
+import AudioReactiveVisualizer from './entities/AudioReactiveVisualizer'
 import * as dat from 'dat.gui'
 import BPMManager from './managers/BPMManager'
-import AudioManager from './managers/AudioManager'
+import AdvancedAudioManager from './managers/AdvancedAudioManager'
 import FileUploadManager from './managers/FileUploadManager'
 import GestureManager from './managers/GestureManager'
 import VisualizationModeManager from './managers/VisualizationModeManager'
@@ -15,7 +16,7 @@ export default class App {
   static gui = null
 
   //Managers
-  static audioManager = null
+  static advancedAudioManager = null
   static bpmManager = null
   static fileUploadManager = null
   static gestureManager = null
@@ -24,6 +25,7 @@ export default class App {
   //Visual entities
   static particles = null
   static anomalyVisualizer = null
+  static audioReactiveVisualizer = null
 
   constructor() {
     this.onClickBinder = () => this.init()
@@ -74,8 +76,8 @@ export default class App {
     // Initialize visualization mode manager
     App.visualizationModeManager = new VisualizationModeManager()
     
-    App.audioManager = new AudioManager()
-    await App.audioManager.loadAudioBuffer()
+    App.advancedAudioManager = new AdvancedAudioManager()
+    await App.advancedAudioManager.loadAudioBuffer()
 
     // Initialize visual entities first
     App.particles = new ReativeParticles()
@@ -84,18 +86,22 @@ export default class App {
     App.anomalyVisualizer = new AnomalyVisualizer()
     App.anomalyVisualizer.init()
     
+    App.audioReactiveVisualizer = new AudioReactiveVisualizer()
+    App.audioReactiveVisualizer.init()
+    
     // Start with particles mode, hide anomaly visualizer
     App.anomalyVisualizer.visible = false
+    App.audioReactiveVisualizer.visible = false
 
     App.bpmManager = new BPMManager()
     App.bpmManager.addEventListener('beat', () => {
       App.particles.onBPMBeat()
     })
-    await App.bpmManager.detectBPM(App.audioManager.audio.buffer)
+    await App.bpmManager.detectBPM(App.advancedAudioManager.audio.buffer)
 
     // Setup file upload callback
     App.fileUploadManager.onFileLoaded(async (audioBuffer, fileName) => {
-      await App.audioManager.loadCustomAudioBuffer(audioBuffer, fileName)
+      await App.advancedAudioManager.loadCustomAudioBuffer(audioBuffer, fileName)
       await App.bpmManager.detectBPM(audioBuffer)
     })
     
@@ -107,7 +113,7 @@ export default class App {
     }
     document.querySelector('.user_interaction').remove()
 
-    App.audioManager.play()
+    App.advancedAudioManager.play()
 
 
     // Initialize visualization mode manager and set up mode change callback
@@ -128,6 +134,7 @@ export default class App {
     // Hide all visualizers first
     if (App.particles) App.particles.visible = false
     if (App.anomalyVisualizer) App.anomalyVisualizer.visible = false
+    if (App.audioReactiveVisualizer) App.audioReactiveVisualizer.visible = false
     
     // Switch visualization based on the selected mode
     switch (newMode) {
@@ -172,6 +179,10 @@ export default class App {
         }
         break
         
+      case 'audio-reactive':
+        App.audioReactiveVisualizer.visible = true
+        break
+        
       default:
         console.warn(`Unknown visualization mode: ${newMode}`)
         break
@@ -212,7 +223,11 @@ export default class App {
       App.anomalyVisualizer.update()
     }
     
-    App.audioManager.update()
+    if (App.audioReactiveVisualizer?.visible) {
+      App.audioReactiveVisualizer.update()
+    }
+    
+    App.advancedAudioManager.update()
 
     this.renderer.render(this.scene, App.camera)
   }
