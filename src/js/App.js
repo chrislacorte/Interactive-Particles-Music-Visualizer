@@ -76,6 +76,16 @@ export default class App {
     App.audioManager = new AudioManager()
     await App.audioManager.loadAudioBuffer()
 
+    // Initialize visual entities first
+    App.particles = new ReativeParticles()
+    App.particles.init()
+    
+    App.anomalyVisualizer = new AnomalyVisualizer()
+    App.anomalyVisualizer.init()
+    
+    // Start with particles mode, hide anomaly visualizer
+    App.anomalyVisualizer.visible = false
+
     App.bpmManager = new BPMManager()
     App.bpmManager.addEventListener('beat', () => {
       this.particles.onBPMBeat()
@@ -98,14 +108,6 @@ export default class App {
 
     App.audioManager.play()
 
-    App.particles = new ReativeParticles()
-    App.particles.init()
-    
-    App.anomalyVisualizer = new AnomalyVisualizer()
-    App.anomalyVisualizer.init()
-    
-    // Start with particles mode, hide anomaly visualizer
-    App.anomalyVisualizer.visible = false
 
     // Initialize visualization mode manager and set up mode change callback
     App.visualizationModeManager.init()
