@@ -101,7 +101,6 @@ export default class App {
     App.microphoneVisualizer = new MicrophoneVisualizer()
     
     App.fingerPaintingVisualizer = new FingerPaintingVisualizer()
-    App.fingerPaintingVisualizer.init()
     
     // Start with particles mode, hide anomaly visualizer
     App.anomalyVisualizer.visible = false
@@ -154,7 +153,6 @@ export default class App {
     // Handle finger painting mode cleanup
     if (previousMode === 'finger-painting' && App.fingerPaintingVisualizer) {
       App.fingerPaintingVisualizer.destroy()
-      App.fingerPaintingVisualizer.init() // Reinitialize for next use
     }
     
     // Stop/start audio manager based on mode
@@ -217,6 +215,7 @@ export default class App {
         
       case 'finger-painting':
         App.fingerPaintingVisualizer.visible = true
+        App.fingerPaintingVisualizer.init()
         // Clear previous painting when entering mode
         App.fingerPaintingVisualizer.clearCanvas()
         break

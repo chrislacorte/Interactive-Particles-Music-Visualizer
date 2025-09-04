@@ -6,6 +6,7 @@ export default class FingerPaintingVisualizer extends THREE.Object3D {
   constructor() {
     super()
     this.name = 'FingerPaintingVisualizer'
+    this.guiFolder = null
     
     // Canvas and drawing properties
     this.canvas = null
@@ -535,7 +536,8 @@ export default class FingerPaintingVisualizer extends THREE.Object3D {
     if (!App.gui) return
 
     const gui = App.gui
-    const paintingFolder = gui.addFolder('FINGER PAINTING')
+    this.guiFolder = gui.addFolder('FINGER PAINTING')
+    const paintingFolder = this.guiFolder
 
     paintingFolder
       .add(this.properties, 'brushSize', 2, 50)
@@ -587,6 +589,12 @@ export default class FingerPaintingVisualizer extends THREE.Object3D {
     this.strokes = []
     this.particles = []
     this.faceGraphics = []
+    
+    // Remove GUI folder
+    if (this.guiFolder) {
+      App.gui.removeFolder(this.guiFolder)
+      this.guiFolder = null
+    }
     
     // Remove from parent
     if (this.parent) {
