@@ -1,0 +1,40 @@
+Project Overview
+The application visualizes music through dynamic particle systems and 3D objects, which react to audio input and user gestures. It supports custom audio file uploads and offers various display modes for the webcam feed.
+
+Core Components and Their Responsibilities
+The project is organized around several key JavaScript modules, each with a specific role:
+
+src/js/App.js: This is the main orchestration file. It initializes the Three.js renderer, camera, and scene. It also creates instances of all other managers and entities, setting up the overall application flow and handling window resizing.
+src/js/entities/ReactiveParticles.js: This module is responsible for creating and managing the 3D visual elements (particles, boxes, cylinders). It uses Three.js to render these objects and applies shader effects (vertex.glsl, fragment.glsl) to make them reactive to audio and gestures. It also integrates with the dat.gui library for real-time property adjustments.
+src/js/managers/AudioManager.js: Manages all audio-related functionalities. It loads audio files, handles playback (play/pause), and uses the Web Audio API to analyze frequency data (low, mid, high frequencies) which drives the visualizer's reactivity. It also handles loading custom audio buffers from user uploads.
+src/js/managers/BPMManager.js: Detects the Beats Per Minute (BPM) of the loaded audio using the web-audio-beat-detector library. It dispatches 'beat' events that can be used to trigger synchronized visual changes in the ReactiveParticles entity.
+src/js/managers/FileUploadManager.js: Handles the user interface and logic for uploading local audio files. It validates file formats, displays upload progress, and provides the audio buffer to the AudioManager and BPMManager.
+src/js/managers/GestureManager.js: Integrates with MediaPipe (Hands and Pose models) to detect and interpret user hand and body gestures. It manages camera access, draws landmarks on a preview canvas, and dispatches events or calls callbacks for detected gestures (e.g., pinch, swipe, open palm, body lean). This manager is crucial for enabling interactive control over the visualizer.
+Visualization Environments
+The project supports different visual representations, primarily managed within src/js/entities/ReactiveParticles.js:
+
+Point Lines: Visuals composed of points arranged to form lines, potentially with glowing effects. Interaction with hands can cause these lines to react (e.g., "border goes down").
+Dot Particles: Small, reactive particles that respond to hand position and movement, changing their behavior or appearance based on proximity.
+Ball/Cube: 3D geometric shapes (like a ball or cube) constructed from a grid of points, which transform and animate in sync with the music's beat.
+Gesture Controls
+The src/js/managers/GestureManager.js enables a rich set of interactive controls:
+
+Clap Hands: Detects a clapping motion to trigger an "explosion" effect of particles, which then return to their original state.
+Follow Finger(s): Allows particles or elements to follow the movement of one or both fingers, providing direct manipulation of the visuals.
+Conductor Mode: Maps vertical and horizontal hand movements to control the corresponding movement of the visual elements, allowing users to "conduct" the visualization.
+Freestyle Mode: Enables free interaction, such as "tapping" to change particle colors.
+Open Palm: A gesture to reset visual parameters to their default state.
+Webcam Modes
+The application offers flexible display options for the webcam feed, configured primarily through CSS in src/scss/includes/base.scss and controlled by src/js/managers/GestureManager.js:
+
+No Webcam: The webcam feed is hidden when gesture controls are disabled.
+Webcam in Bottom Right Corner: The webcam preview is displayed as a small overlay in the bottom-right corner of the screen.
+Webcam as Background: The webcam feed fills the entire background, with the Three.js visualization rendered on top.
+Design and Color Customization
+The visualizer allows for dynamic customization of its appearance:
+
+Particle/Element Coloring: Users can change the start and end colors of the particles/elements, affecting the gradient and overall color scheme. This is exposed via dat.gui and can also be triggered by gestures.
+Background Color: The background color of the scene can be dynamically adjusted, either through CSS variables or directly via the Three.js renderer's clear color.
+Future Enhancements (Bonus)
+Record Mode: A planned feature to record the visual output (canvas) along with the audio, allowing users to save and share their interactive sessions as video files. This would involve using the MediaRecorder API to combine video and audio streams.
+This knowledge base provides a comprehensive overview of the project's structure, functionalities, and the roles of its various components.
