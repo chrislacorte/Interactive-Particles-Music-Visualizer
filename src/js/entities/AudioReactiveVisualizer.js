@@ -406,7 +406,7 @@ export default class AudioReactiveVisualizer extends THREE.Object3D {
     
     // Update waveform visualization
     this.updateWaveform(audioData)
-  }
+    
     // Rotate entire system based on overall audio level
     this.holderObjects.rotation.y += audioData.smoothed.overall * 0.01
   }
