@@ -88,7 +88,7 @@ export default class App {
 
     App.bpmManager = new BPMManager()
     App.bpmManager.addEventListener('beat', () => {
-      this.particles.onBPMBeat()
+      App.particles.onBPMBeat()
     })
     await App.bpmManager.detectBPM(App.audioManager.audio.buffer)
 
