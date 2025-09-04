@@ -3,6 +3,8 @@ import ReativeParticles from './entities/ReactiveParticles'
 import * as dat from 'dat.gui'
 import BPMManager from './managers/BPMManager'
 import AudioManager from './managers/AudioManager'
+import FileUploadManager from './managers/FileUploadManager'
+import GestureManager from './managers/GestureManager'
 
 export default class App {
   //THREE objects
@@ -12,6 +14,8 @@ export default class App {
   //Managers
   static audioManager = null
   static bpmManager = null
+  static fileUploadManager = null
+  static gestureManager = null
 
   constructor() {
     this.onClickBinder = () => this.init()
@@ -52,6 +56,13 @@ export default class App {
   }
 
   async createManagers() {
+    // Initialize file upload manager
+    App.fileUploadManager = new FileUploadManager()
+    App.fileUploadManager.init()
+    
+    // Initialize gesture manager
+    App.gestureManager = new GestureManager()
+    
     App.audioManager = new AudioManager()
     await App.audioManager.loadAudioBuffer()
 
@@ -61,6 +72,18 @@ export default class App {
     })
     await App.bpmManager.detectBPM(App.audioManager.audio.buffer)
 
+    // Setup file upload callback
+    App.fileUploadManager.onFileLoaded(async (audioBuffer, fileName) => {
+      await App.audioManager.loadCustomAudioBuffer(audioBuffer, fileName)
+      await App.bpmManager.detectBPM(audioBuffer)
+    })
+    
+    // Initialize gesture controls (optional - user can enable later)
+    try {
+      await App.gestureManager.init()
+    } catch (error) {
+      console.log('Gesture controls not available:', error.message)
+    }
     document.querySelector('.user_interaction').remove()
 
     App.audioManager.play()
@@ -78,6 +101,15 @@ export default class App {
     this.camera.aspect = this.width / this.height
     this.camera.updateProjectionMatrix()
     this.renderer.setSize(this.width, this.height)
+    
+    // Update gesture canvas size if active
+    if (App.gestureManager?.isEnabled) {
+      const canvas = document.querySelector('.gesture-canvas')
+      if (canvas) {
+        canvas.width = 320
+        canvas.height = 240
+      }
+    }
   }
 
   update() {

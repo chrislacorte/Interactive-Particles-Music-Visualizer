@@ -193,6 +193,321 @@ body #cdawrap {
   display: none;
 }
 
+/* File Upload Styles */
+.upload-container {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 1001;
+}
+
+.upload-area {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  min-width: 200px;
+  text-align: center;
+}
+
+.upload-area:hover,
+.upload-area.drag-over {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.upload-icon {
+  width: 32px;
+  height: 32px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.upload-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.upload-formats {
+  font-size: 0.7rem;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.upload-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff00ff, #00ffff);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.8rem;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.upload-message {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  text-align: center;
+  animation: slideIn 0.3s ease;
+}
+
+.upload-message--success {
+  background: rgba(0, 255, 0, 0.2);
+  border: 1px solid rgba(0, 255, 0, 0.4);
+  color: #00ff00;
+}
+
+.upload-message--error {
+  background: rgba(255, 0, 0, 0.2);
+  border: 1px solid rgba(255, 0, 0, 0.4);
+  color: #ff4444;
+}
+
+/* Current Track Display */
+.current-track {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  z-index: 1001;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 8px;
+  padding: 0.75rem;
+  backdrop-filter: blur(10px);
+}
+
+.track-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.track-icon {
+  width: 20px;
+  height: 20px;
+  color: #00ffff;
+}
+
+.track-name {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.track-controls {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  transition: color 0.2s ease;
+}
+
+.track-controls:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.track-controls svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Gesture Control Styles */
+.gesture-container {
+  position: fixed;
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.gesture-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.gesture-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.gesture-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.gesture-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.gesture-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.7rem;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  background: #00ff00;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.status-text {
+  color: #00ff00;
+  font-weight: 500;
+}
+
+.gesture-preview {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.gesture-video {
+  width: 320px;
+  height: 240px;
+  object-fit: cover;
+}
+
+.gesture-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 320px;
+  height: 240px;
+  pointer-events: none;
+}
+
+.gesture-help {
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 8px;
+  padding: 1rem;
+  max-width: 320px;
+  backdrop-filter: blur(10px);
+}
+
+.gesture-help h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.gesture-help ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gesture-help li {
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+}
+
+.gesture-help strong {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.gesture-error {
+  background: rgba(255, 0, 0, 0.2);
+  border: 1px solid rgba(255, 0, 0, 0.4);
+  border-radius: 6px;
+  padding: 0.75rem;
+  color: #ff4444;
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 @media screen and (min-width: 53em) {
   .frame {
     position: fixed;
@@ -213,5 +528,19 @@ body #cdawrap {
 
   .dg.ac {
     display: block;
+  }
+  
+  .upload-container {
+    top: 2rem;
+    right: 2rem;
+  }
+  
+  .gesture-container {
+    top: 2rem;
+  }
+  
+  .current-track {
+    bottom: 2rem;
+    left: 2rem;
   }
 }

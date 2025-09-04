@@ -15,6 +15,14 @@ export default class ReactiveParticles extends THREE.Object3D {
       autoMix: true,
       autoRotate: true,
     }
+    
+    // Gesture control state
+    this.gestureControls = {
+      zoomLevel: 1,
+      rotationSpeed: 1,
+      intensityMultiplier: 1,
+      basePosition: { x: 0, y: 0, z: 12 }
+    }
   }
 
   init() {
@@ -43,8 +51,149 @@ export default class ReactiveParticles extends THREE.Object3D {
 
     this.addGUI()
     this.resetMesh()
+    this.setupGestureControls()
   }
 
+  setupGestureControls() {
+    if (App.gestureManager) {
+      // Setup gesture callbacks
+      App.gestureManager.onPinch((strength) => {
+        this.handlePinchGesture(strength)
+      })
+      
+      App.gestureManager.onSwipe((direction, velocity) => {
+        this.handleSwipeGesture(direction, velocity)
+      })
+      
+      App.gestureManager.onBodyLean((lean) => {
+        this.handleBodyLeanGesture(lean)
+      })
+      
+      App.gestureManager.onReset(() => {
+        this.handleResetGesture()
+      })
+    }
+  }
+
+  handlePinchGesture(strength) {
+    // Map pinch strength to zoom level
+    const targetZoom = 0.5 + strength * 2 // Range: 0.5 to 2.5
+    this.gestureControls.zoomLevel = targetZoom
+    
+    // Apply zoom to camera position
+    gsap.to(App.camera?.position || {}, {
+      duration: 0.1,
+      z: this.gestureControls.basePosition.z / targetZoom,
+      ease: 'power2.out'
+    })
+    
+    // Adjust particle size based on zoom
+    gsap.to(this.material.uniforms.size, {
+      duration: 0.1,
+      value: 1.1 * targetZoom,
+      ease: 'power2.out'
+    })
+  }
+
+  handleSwipeGesture(direction, velocity) {
+    switch (direction) {
+      case 'left':
+        // Switch to box mesh
+        this.destroyMesh()
+        this.createBoxMesh()
+        this.properties.autoMix = false
+        break
+      case 'right':
+        // Switch to cylinder mesh
+        this.destroyMesh()
+        this.createCylinderMesh()
+        this.properties.autoMix = false
+        break
+      case 'up':
+        // Increase particle intensity
+        gsap.to(this.material.uniforms.amplitude, {
+          duration: 0.3,
+          value: Math.min(this.material.uniforms.amplitude.value + 0.5, 3),
+          ease: 'power2.out'
+        })
+        break
+      case 'down':
+        // Decrease particle intensity
+        gsap.to(this.material.uniforms.amplitude, {
+          duration: 0.3,
+          value: Math.max(this.material.uniforms.amplitude.value - 0.5, 0.1),
+          ease: 'power2.out'
+        })
+        break
+    }
+  }
+
+  handleBodyLeanGesture(lean) {
+    // Map body lean to rotation and color mixing
+    this.gestureControls.intensityMultiplier = 1 + Math.abs(lean) * 0.5
+    
+    // Apply rotation based on lean
+    if (this.holderObjects) {
+      gsap.to(this.holderObjects.rotation, {
+        duration: 0.2,
+        z: lean * Math.PI * 0.1,
+        ease: 'power2.out'
+      })
+    }
+    
+    // Adjust frequency based on lean intensity
+    gsap.to(this.material.uniforms.frequency, {
+      duration: 0.2,
+      value: 2 + Math.abs(lean) * 2,
+      ease: 'power2.out'
+    })
+  }
+
+  handleResetGesture() {
+    // Reset all gesture-controlled parameters
+    this.gestureControls.zoomLevel = 1
+    this.gestureControls.intensityMultiplier = 1
+    
+    // Reset camera position
+    gsap.to(App.camera?.position || {}, {
+      duration: 0.5,
+      z: this.gestureControls.basePosition.z,
+      ease: 'elastic.out(1, 0.3)'
+    })
+    
+    // Reset material properties
+    gsap.to(this.material.uniforms.size, {
+      duration: 0.5,
+      value: 1.1,
+      ease: 'elastic.out(1, 0.3)'
+    })
+    
+    gsap.to(this.material.uniforms.frequency, {
+      duration: 0.5,
+      value: 2,
+      ease: 'elastic.out(1, 0.3)'
+    })
+    
+    gsap.to(this.material.uniforms.amplitude, {
+      duration: 0.5,
+      value: 1,
+      ease: 'elastic.out(1, 0.3)'
+    })
+    
+    // Reset rotation
+    if (this.holderObjects) {
+      gsap.to(this.holderObjects.rotation, {
+        duration: 0.5,
+        x: 0,
+        y: 0,
+        z: 0,
+        ease: 'elastic.out(1, 0.3)'
+      })
+    }
+    
+    // Re-enable auto mix
+    this.properties.autoMix = true
+  }
   createBoxMesh() {
     // Randomly generate segment counts for width, height, and depth to create varied box geometries
     let widthSeg = Math.floor(THREE.MathUtils.randInt(5, 20))
@@ -172,14 +321,15 @@ export default class ReactiveParticles extends THREE.Object3D {
   update() {
     if (App.audioManager?.isPlaying) {
       // Dynamically update amplitude based on the high frequency data from the audio manager
-      this.material.uniforms.amplitude.value = 0.8 + THREE.MathUtils.mapLinear(App.audioManager.frequencyData.high, 0, 0.6, -0.1, 0.2)
+      const baseAmplitude = 0.8 + THREE.MathUtils.mapLinear(App.audioManager.frequencyData.high, 0, 0.6, -0.1, 0.2)
+      this.material.uniforms.amplitude.value = baseAmplitude * this.gestureControls.intensityMultiplier
 
       // Update offset gain based on the low frequency data for subtle effect changes
       this.material.uniforms.offsetGain.value = App.audioManager.frequencyData.mid * 0.6
 
       // Map low frequency data to a range and use it to increment the time uniform
       const t = THREE.MathUtils.mapLinear(App.audioManager.frequencyData.low, 0.6, 1, 0.2, 0.5)
-      this.time += THREE.MathUtils.clamp(t, 0.2, 0.5) // Clamp the value to ensure it stays within a desired range
+      this.time += THREE.MathUtils.clamp(t, 0.2, 0.5) * this.gestureControls.rotationSpeed // Clamp the value to ensure it stays within a desired range
     } else {
       // Set default values for the uniforms when audio is not playing
       this.material.uniforms.frequency.value = 0.8
@@ -231,5 +381,11 @@ export default class ReactiveParticles extends THREE.Object3D {
       },
     }
     visualizerFolder.add(buttonShowCylinder, 'showCylinder').name('Show Cylinder')
+    
+    // Add gesture controls to GUI
+    const gestureFolder = gui.addFolder('GESTURE CONTROLS')
+    gestureFolder.add(this.gestureControls, 'zoomLevel', 0.1, 3).name('Zoom Level').listen()
+    gestureFolder.add(this.gestureControls, 'rotationSpeed', 0.1, 3).name('Rotation Speed').listen()
+    gestureFolder.add(this.gestureControls, 'intensityMultiplier', 0.1, 3).name('Intensity Multiplier').listen()
   }
 }
