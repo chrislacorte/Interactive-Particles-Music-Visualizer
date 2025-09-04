@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import ReativeParticles from './entities/ReactiveParticles'
+import AnomalyVisualizer from './entities/AnomalyVisualizer'
 import * as dat from 'dat.gui'
 import BPMManager from './managers/BPMManager'
 import AudioManager from './managers/AudioManager'
@@ -18,6 +19,10 @@ export default class App {
   static fileUploadManager = null
   static gestureManager = null
   static visualizationModeManager = null
+  
+  //Visual entities
+  static particles = null
+  static anomalyVisualizer = null
 
   constructor() {
     this.onClickBinder = () => this.init()
@@ -93,8 +98,14 @@ export default class App {
 
     App.audioManager.play()
 
-    this.particles = new ReativeParticles()
-    this.particles.init()
+    App.particles = new ReativeParticles()
+    App.particles.init()
+    
+    App.anomalyVisualizer = new AnomalyVisualizer()
+    App.anomalyVisualizer.init()
+    
+    // Start with particles mode, hide anomaly visualizer
+    App.anomalyVisualizer.visible = false
 
     // Initialize visualization mode manager and set up mode change callback
     App.visualizationModeManager.init()
@@ -111,34 +122,51 @@ export default class App {
     // Temporarily disable mode switching during transition
     App.visualizationModeManager.setEnabled(false)
     
+    // Hide all visualizers first
+    if (App.particles) App.particles.visible = false
+    if (App.anomalyVisualizer) App.anomalyVisualizer.visible = false
+    
     // Switch visualization based on the selected mode
     switch (newMode) {
       case 'particles':
-        this.particles.destroyMesh()
+        App.particles.visible = true
+        App.particles.destroyMesh()
         // Use existing random mesh creation logic
         if (Math.random() < 0.5) {
-          this.particles.createCylinderMesh()
+          App.particles.createCylinderMesh()
         } else {
-          this.particles.createBoxMesh()
+          App.particles.createBoxMesh()
         }
-        this.particles.properties.autoMix = true
+        App.particles.properties.autoMix = true
         break
         
       case 'circles':
-        this.particles.destroyMesh()
-        this.particles.createCylinderMesh()
-        this.particles.properties.autoMix = false
+        App.particles.visible = true
+        App.particles.destroyMesh()
+        App.particles.createCylinderMesh()
+        App.particles.properties.autoMix = false
         break
         
       case 'lines':
-        this.particles.destroyMesh()
-        if (typeof this.particles.createPointLinesMesh === 'function') {
-          this.particles.createPointLinesMesh()
+        App.particles.visible = true
+        App.particles.destroyMesh()
+        if (typeof App.particles.createPointLinesMesh === 'function') {
+          App.particles.createPointLinesMesh()
         } else {
           // Fallback to box mesh if point lines not implemented yet
-          this.particles.createBoxMesh()
+          App.particles.createBoxMesh()
         }
-        this.particles.properties.autoMix = false
+        App.particles.properties.autoMix = false
+        break
+        
+      case 'anomaly':
+        App.anomalyVisualizer.visible = true
+        // Reset anomaly visualizer state
+        App.anomalyVisualizer.anomalyTargetPosition.set(0, 0, 0)
+        App.anomalyVisualizer.anomalyVelocity.set(0, 0)
+        if (App.anomalyVisualizer.anomalyObject) {
+          App.anomalyVisualizer.anomalyObject.position.set(0, 0, 0)
+        }
         break
         
       default:
@@ -172,7 +200,15 @@ export default class App {
   update() {
     requestAnimationFrame(() => this.update())
 
-    this.particles?.update()
+    // Update active visualizers
+    if (App.particles?.visible) {
+      App.particles.update()
+    }
+    
+    if (App.anomalyVisualizer?.visible) {
+      App.anomalyVisualizer.update()
+    }
+    
     App.audioManager.update()
 
     this.renderer.render(this.scene, this.camera)
