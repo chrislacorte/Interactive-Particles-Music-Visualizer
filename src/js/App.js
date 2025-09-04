@@ -11,6 +11,7 @@ import VisualizationModeManager from './managers/VisualizationModeManager'
 export default class App {
   //THREE objects
   static holder = null
+  static camera = null
   static gui = null
 
   //Managers
@@ -42,12 +43,12 @@ export default class App {
     this.renderer.autoClear = false
     document.querySelector('.content').appendChild(this.renderer.domElement)
 
-    this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10000)
-    this.camera.position.z = 12
-    this.camera.frustumCulled = false
+    App.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10000)
+    App.camera.position.z = 12
+    App.camera.frustumCulled = false
 
     this.scene = new THREE.Scene()
-    this.scene.add(this.camera)
+    this.scene.add(App.camera)
 
     App.holder = new THREE.Object3D()
     App.holder.name = 'holder'
@@ -185,8 +186,8 @@ export default class App {
     this.width = window.innerWidth
     this.height = window.innerHeight
 
-    this.camera.aspect = this.width / this.height
-    this.camera.updateProjectionMatrix()
+    App.camera.aspect = this.width / this.height
+    App.camera.updateProjectionMatrix()
     this.renderer.setSize(this.width, this.height)
     
     // Update gesture canvas size if active
@@ -213,6 +214,6 @@ export default class App {
     
     App.audioManager.update()
 
-    this.renderer.render(this.scene, this.camera)
+    this.renderer.render(this.scene, App.camera)
   }
 }
