@@ -50,6 +50,7 @@ export default class DistortionVisualizer extends THREE.Object3D {
     this.createDistortionMesh()
     this.setupGestureControls()
     this.addGUI()
+    this.setupColorSync()
   }
 
   createDistortionMesh() {

@@ -58,6 +58,7 @@ export default class AudioReactiveVisualizer extends THREE.Object3D {
     this.createWaveform()
     this.setupAudioCallbacks()
     this.addGUI()
+    this.setupColorSync()
   }
 
   createParticleSystem() {
@@ -406,6 +407,41 @@ export default class AudioReactiveVisualizer extends THREE.Object3D {
     // Update waveform visualization
     this.updateWaveform(audioData)
     
+  
+  setupColorSync() {
+    if (App.colorSyncManager) {
+      App.colorSyncManager.subscribe(
+        'AudioReactiveVisualizer',
+        (colors) => this.onColorsUpdated(colors),
+        ['primary', 'secondary', 'accent']
+      )
+    }
+  }
+  
+  onColorsUpdated(colors) {
+    if (colors.primary !== undefined) {
+      this.properties.bassColor = colors.primary
+      this.bassElements.forEach(element => {
+        element.material.color.setHex(colors.primary)
+      })
+    }
+    
+    if (colors.secondary !== undefined) {
+      this.properties.midColor = colors.secondary
+      this.midElements.forEach(element => {
+        element.material.color.setHex(colors.secondary)
+      })
+    }
+    
+    if (colors.accent !== undefined) {
+      this.properties.trebleColor = colors.accent
+      this.trebleElements.forEach(element => {
+        element.material.color.setHex(colors.accent)
+      })
+    }
+    
+    console.log('AudioReactiveVisualizer: Colors updated', colors)
+  }
     // Rotate entire system based on overall audio level
     this.holderObjects.rotation.y += audioData.smoothed.overall * 0.01
   }
@@ -425,18 +461,30 @@ export default class AudioReactiveVisualizer extends THREE.Object3D {
       this.bassElements.forEach(element => {
         element.material.color.setHex(color)
       })
+      // Sync to global color manager
+      if (App.colorSyncManager) {
+        App.colorSyncManager.updateColor('primary', color, 'AudioReactiveVisualizer')
+      }
     })
     
     audioFolder.addColor(this.properties, 'midColor').name('Mid Color').onChange((color) => {
       this.midElements.forEach(element => {
         element.material.color.setHex(color)
       })
+      // Sync to global color manager
+      if (App.colorSyncManager) {
+        App.colorSyncManager.updateColor('secondary', color, 'AudioReactiveVisualizer')
+      }
     })
     
     audioFolder.addColor(this.properties, 'trebleColor').name('Treble Color').onChange((color) => {
       this.trebleElements.forEach(element => {
         element.material.color.setHex(color)
       })
+      // Sync to global color manager
+      if (App.colorSyncManager) {
+        App.colorSyncManager.updateColor('accent', color, 'AudioReactiveVisualizer')
+      }
     })
     
     // Audio settings

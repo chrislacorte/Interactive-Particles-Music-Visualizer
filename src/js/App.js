@@ -11,6 +11,7 @@ import AdvancedAudioManager from './managers/AdvancedAudioManager'
 import FileUploadManager from './managers/FileUploadManager'
 import GestureManager from './managers/GestureManager'
 import VisualizationModeManager from './managers/VisualizationModeManager'
+import ColorSyncManager from './managers/ColorSyncManager'
 
 export default class App {
   //THREE objects
@@ -24,6 +25,7 @@ export default class App {
   static fileUploadManager = null
   static gestureManager = null
   static visualizationModeManager = null
+  static colorSyncManager = null
   
   //Visual entities
   static particles = null
@@ -72,6 +74,9 @@ export default class App {
   }
 
   async createManagers() {
+    // Initialize color synchronization manager first
+    App.colorSyncManager = new ColorSyncManager()
+    
     // Initialize file upload manager
     App.fileUploadManager = new FileUploadManager()
     App.fileUploadManager.init()
@@ -135,6 +140,9 @@ export default class App {
     App.visualizationModeManager.onModeChange((newMode, previousMode) => {
       this.handleVisualizationModeChange(newMode, previousMode)
     })
+    
+    // Setup global color change listeners
+    this.setupGlobalColorListeners()
 
     this.update()
   }
@@ -245,6 +253,53 @@ export default class App {
     setTimeout(() => {
       App.visualizationModeManager.setEnabled(true)
     }, 500)
+  }
+  
+  setupGlobalColorListeners() {
+    // Listen for global color changes and provide user feedback
+    document.addEventListener('globalColorChange', (event) => {
+      const { colorType, newValue } = event.detail
+      console.log(`Global color ${colorType} changed to #${newValue.toString(16).padStart(6, '0')}`)
+      
+      // Optional: Show brief visual feedback
+      this.showColorChangeNotification(colorType, newValue)
+    })
+    
+    document.addEventListener('globalColorBatchChange', (event) => {
+      const { changes, source } = event.detail
+      console.log(`Batch color update from ${source}:`, changes)
+    })
+  }
+  
+  showColorChangeNotification(colorType, colorValue) {
+    // Create temporary notification element
+    const notification = document.createElement('div')
+    notification.className = 'color-change-notification'
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #${colorValue.toString(16).padStart(6, '0')};
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 10000;
+      pointer-events: none;
+      backdrop-filter: blur(10px);
+      border: 1px solid #${colorValue.toString(16).padStart(6, '0')};
+      animation: colorNotificationSlide 2s ease-out forwards;
+    `
+    notification.textContent = `${colorType.toUpperCase()} color updated`
+    
+    document.body.appendChild(notification)
+    
+    // Remove after animation
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification)
+      }
+    }, 2000)
   }
   resize() {
     this.width = window.innerWidth

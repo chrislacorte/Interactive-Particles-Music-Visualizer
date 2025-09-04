@@ -54,6 +54,7 @@ export default class ReactiveParticles extends THREE.Object3D {
     this.addGUI()
     this.resetMesh()
     this.setupGestureControls()
+    this.setupColorSync()
   }
 
   setupGestureControls() {
@@ -314,6 +315,32 @@ export default class ReactiveParticles extends THREE.Object3D {
     
     // Re-enable auto mix
     this.properties.autoMix = true
+  }
+  
+  setupColorSync() {
+    if (App.colorSyncManager) {
+      // Subscribe to color updates
+      App.colorSyncManager.subscribe(
+        'ReactiveParticles',
+        (colors) => this.onColorsUpdated(colors),
+        ['primary', 'secondary']
+      )
+    }
+  }
+  
+  onColorsUpdated(colors) {
+    // Update material uniforms with new colors
+    if (colors.primary !== undefined) {
+      this.properties.startColor = colors.primary
+      this.material.uniforms.startColor.value = new THREE.Color(colors.primary)
+    }
+    
+    if (colors.secondary !== undefined) {
+      this.properties.endColor = colors.secondary
+      this.material.uniforms.endColor.value = new THREE.Color(colors.secondary)
+    }
+    
+    console.log('ReactiveParticles: Colors updated', colors)
   }
   
   handlePaintGesture(x, y, pressure) {
@@ -648,6 +675,10 @@ export default class ReactiveParticles extends THREE.Object3D {
       .name('Start Color')
       .onChange((e) => {
         this.material.uniforms.startColor.value = new THREE.Color(e)
+        // Sync to global color manager
+        if (App.colorSyncManager) {
+          App.colorSyncManager.updateColor('primary', e, 'ReactiveParticles')
+        }
       })
 
     particlesFolder
@@ -656,6 +687,10 @@ export default class ReactiveParticles extends THREE.Object3D {
       .name('End Color')
       .onChange((e) => {
         this.material.uniforms.endColor.value = new THREE.Color(e)
+        // Sync to global color manager
+        if (App.colorSyncManager) {
+          App.colorSyncManager.updateColor('secondary', e, 'ReactiveParticles')
+        }
       })
 
     const visualizerFolder = gui.addFolder('VISUALIZER')

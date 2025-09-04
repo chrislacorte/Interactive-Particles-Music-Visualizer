@@ -42,6 +42,7 @@ export default class AnomalyVisualizer extends THREE.Object3D {
     this.setupInteraction()
     this.addGUI()
     this.setupGestureControls()
+    this.setupColorSync()
   }
 
   createAnomalyObject() {
@@ -244,6 +245,30 @@ export default class AnomalyVisualizer extends THREE.Object3D {
     this.createAnomalyObject()
     this.createBackgroundParticles()
   }
+  
+  setupColorSync() {
+    if (App.colorSyncManager) {
+      App.colorSyncManager.subscribe(
+        'AnomalyVisualizer',
+        (colors) => this.onColorsUpdated(colors),
+        ['primary', 'accent']
+      )
+    }
+  }
+  
+  onColorsUpdated(colors) {
+    if (colors.primary !== undefined) {
+      this.properties.anomalyColor = colors.primary
+      if (this.outerMaterial) {
+        this.outerMaterial.uniforms.color.value = new THREE.Color(colors.primary)
+      }
+      if (this.glowMaterial) {
+        this.glowMaterial.uniforms.color.value = new THREE.Color(colors.primary)
+      }
+    }
+    
+    console.log('AnomalyVisualizer: Colors updated', colors)
+  }
 
   setupInteraction() {
     // Setup mouse interaction for anomaly dragging
@@ -438,6 +463,10 @@ export default class AnomalyVisualizer extends THREE.Object3D {
         }
         if (this.glowMaterial) {
           this.glowMaterial.uniforms.color.value = new THREE.Color(this.properties.anomalyColor)
+        }
+        // Sync to global color manager
+        if (App.colorSyncManager) {
+          App.colorSyncManager.updateColor('primary', this.properties.anomalyColor, 'AnomalyVisualizer')
         }
       })
 
