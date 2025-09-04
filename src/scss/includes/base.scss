@@ -196,9 +196,10 @@ body #cdawrap {
 /* File Upload Styles */
 .upload-container {
   position: fixed;
-  top: 1.5rem;
+  bottom: 1.5rem;
   right: 1.5rem;
-  z-index: 1001;
+  z-index: 9999;
+  pointer-events: auto;
 }
 
 .upload-area {
@@ -211,6 +212,8 @@ body #cdawrap {
   backdrop-filter: blur(10px);
   min-width: 200px;
   text-align: center;
+  pointer-events: auto;
+  position: relative;
 }
 
 .upload-area:hover,
@@ -218,6 +221,7 @@ body #cdawrap {
   border-color: rgba(255, 255, 255, 0.6);
   background: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
 }
 
 .upload-content {
@@ -225,6 +229,7 @@ body #cdawrap {
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
+  pointer-events: none;
 }
 
 .upload-icon {
@@ -251,6 +256,7 @@ body #cdawrap {
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  pointer-events: none;
 }
 
 .progress-bar {
@@ -276,15 +282,16 @@ body #cdawrap {
 
 .upload-message {
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   left: 0;
   right: 0;
-  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
   padding: 0.75rem;
   border-radius: 8px;
   font-size: 0.8rem;
   text-align: center;
   animation: slideIn 0.3s ease;
+  pointer-events: none;
 }
 
 .upload-message--success {
@@ -302,13 +309,14 @@ body #cdawrap {
 /* Current Track Display */
 .current-track {
   position: fixed;
-  bottom: 1.5rem;
+  bottom: 6rem;
   left: 1.5rem;
-  z-index: 1001;
+  z-index: 9998;
   background: rgba(0, 0, 0, 0.8);
   border-radius: 8px;
   padding: 0.75rem;
   backdrop-filter: blur(10px);
+  pointer-events: auto;
 }
 
 .track-info {
@@ -341,6 +349,7 @@ body #cdawrap {
   width: 16px;
   height: 16px;
   transition: color 0.2s ease;
+  pointer-events: auto;
 }
 
 .track-controls:hover {
@@ -358,11 +367,12 @@ body #cdawrap {
   top: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1001;
+  z-index: 9997;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  pointer-events: auto;
 }
 
 .gesture-controls {
@@ -384,6 +394,7 @@ body #cdawrap {
   font-size: 0.8rem;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  pointer-events: auto;
 }
 
 .gesture-toggle:hover {
@@ -491,7 +502,7 @@ body #cdawrap {
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -531,7 +542,7 @@ body #cdawrap {
   }
   
   .upload-container {
-    top: 2rem;
+    bottom: 2rem;
     right: 2rem;
   }
   
@@ -540,7 +551,7 @@ body #cdawrap {
   }
   
   .current-track {
-    bottom: 2rem;
+    bottom: 7rem;
     left: 2rem;
   }
 }
