@@ -5,6 +5,7 @@ import BPMManager from './managers/BPMManager'
 import AudioManager from './managers/AudioManager'
 import FileUploadManager from './managers/FileUploadManager'
 import GestureManager from './managers/GestureManager'
+import VisualizationModeManager from './managers/VisualizationModeManager'
 
 export default class App {
   //THREE objects
@@ -16,6 +17,7 @@ export default class App {
   static bpmManager = null
   static fileUploadManager = null
   static gestureManager = null
+  static visualizationModeManager = null
 
   constructor() {
     this.onClickBinder = () => this.init()
@@ -63,6 +65,9 @@ export default class App {
     // Initialize gesture manager
     App.gestureManager = new GestureManager()
     
+    // Initialize visualization mode manager
+    App.visualizationModeManager = new VisualizationModeManager()
+    
     App.audioManager = new AudioManager()
     await App.audioManager.loadAudioBuffer()
 
@@ -91,9 +96,61 @@ export default class App {
     this.particles = new ReativeParticles()
     this.particles.init()
 
+    // Initialize visualization mode manager and set up mode change callback
+    App.visualizationModeManager.init()
+    App.visualizationModeManager.onModeChange((newMode, previousMode) => {
+      this.handleVisualizationModeChange(newMode, previousMode)
+    })
+
     this.update()
   }
 
+  handleVisualizationModeChange(newMode, previousMode) {
+    console.log(`Switching visualization from ${previousMode} to ${newMode}`)
+    
+    // Temporarily disable mode switching during transition
+    App.visualizationModeManager.setEnabled(false)
+    
+    // Switch visualization based on the selected mode
+    switch (newMode) {
+      case 'particles':
+        this.particles.destroyMesh()
+        // Use existing random mesh creation logic
+        if (Math.random() < 0.5) {
+          this.particles.createCylinderMesh()
+        } else {
+          this.particles.createBoxMesh()
+        }
+        this.particles.properties.autoMix = true
+        break
+        
+      case 'circles':
+        this.particles.destroyMesh()
+        this.particles.createCylinderMesh()
+        this.particles.properties.autoMix = false
+        break
+        
+      case 'lines':
+        this.particles.destroyMesh()
+        if (typeof this.particles.createPointLinesMesh === 'function') {
+          this.particles.createPointLinesMesh()
+        } else {
+          // Fallback to box mesh if point lines not implemented yet
+          this.particles.createBoxMesh()
+        }
+        this.particles.properties.autoMix = false
+        break
+        
+      default:
+        console.warn(`Unknown visualization mode: ${newMode}`)
+        break
+    }
+    
+    // Re-enable mode switching after a short delay
+    setTimeout(() => {
+      App.visualizationModeManager.setEnabled(true)
+    }, 500)
+  }
   resize() {
     this.width = window.innerWidth
     this.height = window.innerHeight

@@ -337,6 +337,48 @@ export default class ReactiveParticles extends THREE.Object3D {
       z: posZ,
       ease: 'elastic.out(0.8)',
     })
+    this.destroyMesh() // Clear any existing mesh
+
+    const numPointsX = 50 // Number of points horizontally
+    const numPointsY = 50 // Number of points vertically
+    const spacing = 0.2 // Spacing between points
+
+    const positions = []
+    const normals = [] // Normals are often needed even for points, or can be used for other effects
+
+    for (let i = 0; i < numPointsX; i++) {
+      for (let j = 0; j < numPointsY; j++) {
+        // Create a grid of points
+        const x = (i - numPointsX / 2) * spacing
+        const y = (j - numPointsY / 2) * spacing
+        const z = 0 // Start at z=0
+
+        positions.push(x, y, z)
+        normals.push(0, 0, 1) // Example normal
+      }
+    }
+
+    this.geometry = new THREE.BufferGeometry()
+    this.geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+    this.geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3))
+
+    // Adjust material uniforms for this visualization
+    this.material.uniforms.offsetSize.value = 10 // Smaller offset for more defined points
+    this.material.uniforms.size.value = 0.8 // Adjust point size
+    this.material.uniforms.frequency.value = 1.5 // Adjust frequency for subtle movement
+    this.material.uniforms.amplitude.value = 0.5 // Adjust amplitude for subtle movement
+    this.material.needsUpdate = true
+
+    this.pointsMesh = new THREE.Points(this.geometry, this.material)
+    this.pointsMesh.rotation.set(Math.PI / 2, 0, 0) // Rotate to face the camera if needed
+    this.holderObjects.add(this.pointsMesh)
+
+    // Animate position for a nice entry effect
+    gsap.to(this.position, {
+      duration: 0.6,
+      z: 8, // Move closer to the camera
+      ease: 'elastic.out(0.8)',
+    })
   }
 
   onBPMBeat() {
