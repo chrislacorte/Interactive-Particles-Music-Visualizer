@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import ReativeParticles from './entities/ReactiveParticles'
 import AnomalyVisualizer from './entities/AnomalyVisualizer'
 import AudioReactiveVisualizer from './entities/AudioReactiveVisualizer'
+import DistortionVisualizer from './entities/DistortionVisualizer'
 import * as dat from 'dat.gui'
 import BPMManager from './managers/BPMManager'
 import AdvancedAudioManager from './managers/AdvancedAudioManager'
@@ -26,6 +27,7 @@ export default class App {
   static particles = null
   static anomalyVisualizer = null
   static audioReactiveVisualizer = null
+  static distortionVisualizer = null
 
   constructor() {
     this.onClickBinder = () => this.init()
@@ -89,9 +91,13 @@ export default class App {
     App.audioReactiveVisualizer = new AudioReactiveVisualizer()
     App.audioReactiveVisualizer.init()
     
+    App.distortionVisualizer = new DistortionVisualizer()
+    App.distortionVisualizer.init()
+    
     // Start with particles mode, hide anomaly visualizer
     App.anomalyVisualizer.visible = false
     App.audioReactiveVisualizer.visible = false
+    App.distortionVisualizer.visible = false
 
     App.bpmManager = new BPMManager()
     App.bpmManager.addEventListener('beat', () => {
@@ -135,6 +141,7 @@ export default class App {
     if (App.particles) App.particles.visible = false
     if (App.anomalyVisualizer) App.anomalyVisualizer.visible = false
     if (App.audioReactiveVisualizer) App.audioReactiveVisualizer.visible = false
+    if (App.distortionVisualizer) App.distortionVisualizer.visible = false
     
     // Switch visualization based on the selected mode
     switch (newMode) {
@@ -170,6 +177,10 @@ export default class App {
         
       case 'audio-reactive':
         App.audioReactiveVisualizer.visible = true
+        break
+        
+      case 'distortion':
+        App.distortionVisualizer.visible = true
         break
         
       default:
@@ -217,6 +228,10 @@ export default class App {
     
     if (App.audioReactiveVisualizer?.visible) {
       App.audioReactiveVisualizer.update()
+    }
+    
+    if (App.distortionVisualizer?.visible) {
+      App.distortionVisualizer.update()
     }
     
     App.advancedAudioManager.update()

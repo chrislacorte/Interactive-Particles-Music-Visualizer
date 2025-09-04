@@ -744,6 +744,14 @@ body #cdawrap {
   opacity: 0.6;
 }
 
+.nav-option[data-mode="distortion"]::before {
+  content: '◊◊◊';
+  display: block;
+  font-size: 0.7rem;
+  margin-bottom: 0.25rem;
+  opacity: 0.6;
+}
+
 @keyframes activeGlow {
   0% {
     opacity: 0.3;
