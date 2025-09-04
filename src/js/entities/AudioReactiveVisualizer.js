@@ -406,41 +406,6 @@ export default class AudioReactiveVisualizer extends THREE.Object3D {
     
     // Update waveform visualization
     this.updateWaveform(audioData)
-    
-  
-  setupColorSync() {
-    if (App.colorSyncManager) {
-      App.colorSyncManager.subscribe(
-        'AudioReactiveVisualizer',
-        (colors) => this.onColorsUpdated(colors),
-        ['primary', 'secondary', 'accent']
-      )
-    }
-  }
-  
-  onColorsUpdated(colors) {
-    if (colors.primary !== undefined) {
-      this.properties.bassColor = colors.primary
-      this.bassElements.forEach(element => {
-        element.material.color.setHex(colors.primary)
-      })
-    }
-    
-    if (colors.secondary !== undefined) {
-      this.properties.midColor = colors.secondary
-      this.midElements.forEach(element => {
-        element.material.color.setHex(colors.secondary)
-      })
-    }
-    
-    if (colors.accent !== undefined) {
-      this.properties.trebleColor = colors.accent
-      this.trebleElements.forEach(element => {
-        element.material.color.setHex(colors.accent)
-      })
-    }
-    
-    console.log('AudioReactiveVisualizer: Colors updated', colors)
   }
     // Rotate entire system based on overall audio level
     this.holderObjects.rotation.y += audioData.smoothed.overall * 0.01
