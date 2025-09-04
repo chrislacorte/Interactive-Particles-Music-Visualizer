@@ -22,6 +22,9 @@ export default class GestureManager {
       swipeDirection: null,
       poseDetected: false,
       bodyLean: 0,
+      isFollowing: false,
+      followPosition: { x: 0, y: 0 },
+      smoothedFollowPosition: { x: 0, y: 0 },
       // Media control gesture states
       isPlayGesture: false,
       isStopGesture: false,
@@ -37,6 +40,7 @@ export default class GestureManager {
       onBodyLean: null,
       onGestureStart: null,
       onGestureEnd: null,
+      onFollow: null,
       // Media control callbacks
       onPlay: null,
       onStop: null,
@@ -55,9 +59,10 @@ export default class GestureManager {
     this.gestureThresholds = {
       playConfidence: 0.7,
       stopConfidence: 0.8,
-      swipeVelocity: 0.08,
+      swipeVelocity: 0.05,
       cooldownDuration: 1000, // 1 second cooldown
-      confirmationDelay: 300   // 300ms confirmation for critical actions
+      confirmationDelay: 300,   // 300ms confirmation for critical actions
+      followSmoothingFactor: 0.7
     }
     
     // Color themes for swipe functionality
@@ -129,6 +134,7 @@ export default class GestureManager {
           <li><strong>👍 Thumbs Up:</strong> Play/Resume music</li>
           <li><strong>✋ Open Palm:</strong> Stop music (hold for 0.3s)</li>
           <li><strong>👈👉 Swipe:</strong> Change color themes</li>
+          <li><strong>👆 Follow:</strong> Control particle position</li>
           <li><strong>🤏 Pinch:</strong> Zoom particles</li>
           <li><strong>🫴 Reset:</strong> All fingers extended</li>
         </ul>
@@ -276,6 +282,9 @@ export default class GestureManager {
         
         // Process gestures
         this.processHandGestures(landmarks)
+        
+        // Process follow gesture
+        this.processFollowGesture(landmarks)
       }
     }
     
@@ -307,7 +316,7 @@ export default class GestureManager {
 
     // Detect swipe gesture
     const swipeData = this.detectSwipe(landmarks)
-    if (swipeData.isSwipe && !this.gestureState.isSwipeActive) {
+    if (swipeData.isSwipe && !this.gestureState.isSwipeActive && !this.gestureState.isFollowing) {
       this.gestureState.isSwipeActive = true
       this.gestureState.swipeDirection = swipeData.direction
       
@@ -315,10 +324,12 @@ export default class GestureManager {
         this.callbacks.onSwipe(swipeData.direction, swipeData.velocity)
       }
       
+      this.showGestureFeedback('swipe', `Swipe ${swipeData.direction}`)
+      
       // Reset swipe state after a delay
       setTimeout(() => {
         this.gestureState.isSwipeActive = false
-      }, 500)
+      }, 800)
     }
 
     // Detect open palm (reset gesture)
@@ -326,6 +337,77 @@ export default class GestureManager {
       if (this.callbacks.onReset) {
         this.callbacks.onReset()
       }
+    }
+  }
+
+  processFollowGesture(landmarks) {
+    // Use index finger tip for following
+    const indexTip = landmarks[8]
+    
+    if (indexTip) {
+      // Convert MediaPipe coordinates (0-1) to normalized screen coordinates (-1 to 1)
+      const normalizedX = (indexTip.x - 0.5) * 2
+      const normalizedY = (0.5 - indexTip.y) * 2 // Flip Y axis
+      
+      // Update follow position
+      this.gestureState.followPosition.x = normalizedX
+      this.gestureState.followPosition.y = normalizedY
+      
+      // Apply smoothing to reduce jitter
+      const smoothing = this.gestureThresholds.followSmoothingFactor
+      this.gestureState.smoothedFollowPosition.x = 
+        this.gestureState.smoothedFollowPosition.x * smoothing + normalizedX * (1 - smoothing)
+      this.gestureState.smoothedFollowPosition.y = 
+        this.gestureState.smoothedFollowPosition.y * smoothing + normalizedY * (1 - smoothing)
+      
+      // Check if we should start following (index finger extended)
+      const isIndexExtended = this.isFingerExtended(landmarks, 8) // Index finger
+      const isMiddleExtended = this.isFingerExtended(landmarks, 12) // Middle finger
+      const isRingExtended = this.isFingerExtended(landmarks, 16) // Ring finger
+      const isPinkyExtended = this.isFingerExtended(landmarks, 20) // Pinky finger
+      
+      // Follow gesture: only index finger extended
+      const shouldFollow = isIndexExtended && !isMiddleExtended && !isRingExtended && !isPinkyExtended
+      
+      if (shouldFollow && !this.gestureState.isFollowing) {
+        this.gestureState.isFollowing = true
+        this.showGestureFeedback('follow', 'Following finger')
+      } else if (!shouldFollow && this.gestureState.isFollowing) {
+        this.gestureState.isFollowing = false
+        this.hideGestureFeedback()
+      }
+      
+      // Send follow data to callbacks
+      if (this.gestureState.isFollowing && this.callbacks.onFollow) {
+        this.callbacks.onFollow(
+          this.gestureState.smoothedFollowPosition.x,
+          this.gestureState.smoothedFollowPosition.y,
+          this.gestureState.isFollowing
+        )
+      }
+    }
+  }
+
+  isFingerExtended(landmarks, tipIndex) {
+    // Get the tip and pip (proximal interphalangeal) joint indices
+    let pipIndex
+    switch (tipIndex) {
+      case 4: pipIndex = 3; break  // Thumb
+      case 8: pipIndex = 6; break  // Index
+      case 12: pipIndex = 10; break // Middle
+      case 16: pipIndex = 14; break // Ring
+      case 20: pipIndex = 18; break // Pinky
+      default: return false
+    }
+    
+    const tip = landmarks[tipIndex]
+    const pip = landmarks[pipIndex]
+    
+    // For thumb, check x-axis; for others, check y-axis
+    if (tipIndex === 4) {
+      return Math.abs(tip.x - pip.x) > 0.04
+    } else {
+      return tip.y < pip.y - 0.02
     }
   }
 
@@ -372,16 +454,20 @@ export default class GestureManager {
       const deltaY = currentPosition.y - this.gestureState.lastHandPosition.y
       const velocity = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
       
-      if (velocity > 0.05) { // Threshold for swipe detection
+      if (velocity > this.gestureThresholds.swipeVelocity) {
         let direction = 'none'
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        
+        // Require more horizontal movement for left/right swipes
+        if (Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
           direction = deltaX > 0 ? 'right' : 'left'
-        } else {
+        } else if (Math.abs(deltaY) > Math.abs(deltaX) * 1.5) {
           direction = deltaY > 0 ? 'down' : 'up'
         }
         
-        this.gestureState.lastHandPosition = currentPosition
-        return { isSwipe: true, direction, velocity }
+        if (direction !== 'none') {
+          this.gestureState.lastHandPosition = currentPosition
+          return { isSwipe: true, direction, velocity }
+        }
       }
     }
     
@@ -432,6 +518,10 @@ export default class GestureManager {
     this.callbacks.onReset = callback
   }
 
+  onFollow(callback) {
+    this.callbacks.onFollow = callback
+  }
+
   onGestureStart(callback) {
     this.callbacks.onGestureStart = callback
   }
@@ -451,6 +541,32 @@ export default class GestureManager {
   
   onColorChange(callback) {
     this.callbacks.onColorChange = callback
+  }
+
+  showGestureFeedback(type, message) {
+    const feedbackEl = document.querySelector('.gesture-feedback')
+    const feedbackText = document.querySelector('.feedback-text')
+    const feedbackIcon = document.querySelector('.feedback-icon')
+    
+    if (feedbackEl && feedbackText && feedbackIcon) {
+      feedbackEl.className = `gesture-feedback gesture-feedback--${type}`
+      feedbackText.textContent = message
+      feedbackEl.style.display = 'flex'
+      
+      // Auto-hide after 2 seconds for non-persistent gestures
+      if (type !== 'follow') {
+        setTimeout(() => {
+          this.hideGestureFeedback()
+        }, 2000)
+      }
+    }
+  }
+
+  hideGestureFeedback() {
+    const feedbackEl = document.querySelector('.gesture-feedback')
+    if (feedbackEl) {
+      feedbackEl.style.display = 'none'
+    }
   }
 
   showError(message) {
