@@ -5,6 +5,7 @@ import AudioReactiveVisualizer from './entities/AudioReactiveVisualizer'
 import DistortionVisualizer from './entities/DistortionVisualizer'
 import MicrophoneVisualizer from './entities/MicrophoneVisualizer'
 import FingerPaintingVisualizer from './entities/FingerPaintingVisualizer'
+import BreathingDotsVisualizer from './entities/BreathingDotsVisualizer'
 import * as dat from 'dat.gui'
 import BPMManager from './managers/BPMManager'
 import AdvancedAudioManager from './managers/AdvancedAudioManager'
@@ -107,11 +108,15 @@ export default class App {
     
     App.fingerPaintingVisualizer = new FingerPaintingVisualizer()
     
+    App.breathingDotsVisualizer = new BreathingDotsVisualizer()
+    App.breathingDotsVisualizer.init()
+    
     // Start with particles mode, hide anomaly visualizer
     App.anomalyVisualizer.visible = false
     App.audioReactiveVisualizer.visible = false
     App.distortionVisualizer.visible = false
     App.fingerPaintingVisualizer.visible = false
+    App.breathingDotsVisualizer.visible = false
 
     App.bpmManager = new BPMManager()
     App.bpmManager.addEventListener('beat', () => {
@@ -180,6 +185,7 @@ export default class App {
     if (App.audioReactiveVisualizer) App.audioReactiveVisualizer.visible = false
     if (App.distortionVisualizer) App.distortionVisualizer.visible = false
     if (App.fingerPaintingVisualizer) App.fingerPaintingVisualizer.visible = false
+    if (App.breathingDotsVisualizer) App.breathingDotsVisualizer.visible = false
     
     // Switch visualization based on the selected mode
     switch (newMode) {
@@ -226,6 +232,10 @@ export default class App {
         App.fingerPaintingVisualizer.init()
         // Clear previous painting when entering mode
         App.fingerPaintingVisualizer.clearCanvas()
+        break
+        
+      case 'breathing-dots':
+        App.breathingDotsVisualizer.visible = true
         break
         
       case 'microphone':
@@ -342,6 +352,10 @@ export default class App {
     if (App.fingerPaintingVisualizer?.visible) {
       // Finger painting visualizer handles its own animation loop
       // Just ensure it's receiving audio data
+    }
+    
+    if (App.breathingDotsVisualizer?.visible) {
+      App.breathingDotsVisualizer.update()
     }
     
     App.advancedAudioManager.update()
