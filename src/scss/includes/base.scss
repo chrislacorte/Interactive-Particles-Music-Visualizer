@@ -941,6 +941,27 @@ body #cdawrap {
     animation: none;
   }
 }
+
+/* Color change notification animation */
+@keyframes colorNotificationSlide {
+  0% {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+}
+
 /* Animations */
 @keyframes slideIn {
   from {
