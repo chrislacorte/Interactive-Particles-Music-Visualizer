@@ -411,6 +411,32 @@ export default class AudioReactiveVisualizer extends THREE.Object3D {
     this.holderObjects.rotation.y += audioData.smoothed.overall * 0.01
   }
 
+  setupColorSync() {
+    // Set up color synchronization with global color manager
+    if (App.colorSyncManager) {
+      App.colorSyncManager.subscribe('primary', (color) => {
+        this.properties.bassColor = color
+        this.bassElements.forEach(element => {
+          element.material.color.setHex(color)
+        })
+      })
+      
+      App.colorSyncManager.subscribe('secondary', (color) => {
+        this.properties.midColor = color
+        this.midElements.forEach(element => {
+          element.material.color.setHex(color)
+        })
+      })
+      
+      App.colorSyncManager.subscribe('accent', (color) => {
+        this.properties.trebleColor = color
+        this.trebleElements.forEach(element => {
+          element.material.color.setHex(color)
+        })
+      })
+    }
+  }
+
   addGUI() {
     if (!App.gui) return
     
