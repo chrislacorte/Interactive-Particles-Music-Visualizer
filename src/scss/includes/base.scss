@@ -563,6 +563,34 @@ body #cdawrap {
   transform: translateY(-1px);
 }
 
+.gesture-record {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.gesture-record:hover {
+  background: rgba(255, 0, 0, 0.15);
+  border-color: rgba(255, 0, 0, 0.5);
+  transform: translateY(-1px);
+}
+
+.gesture-record.recording {
+  background: rgba(255, 0, 0, 0.2);
+  border-color: rgba(255, 0, 0, 0.6);
+  animation: recordingPulse 1s ease-in-out infinite alternate;
+}
+
 .gesture-icon {
   width: 16px;
   height: 16px;
@@ -579,6 +607,17 @@ body #cdawrap {
   font-size: 0.7rem;
 }
 
+.recording-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.7rem;
+}
+
 .status-indicator {
   width: 8px;
   height: 8px;
@@ -587,9 +626,31 @@ body #cdawrap {
   animation: pulse 2s infinite;
 }
 
+.recording-indicator {
+  width: 8px;
+  height: 8px;
+  background: #ff0000;
+  border-radius: 50%;
+  animation: recordingBlink 0.5s infinite;
+}
+
 .status-text {
   color: #00ff00;
   font-weight: 500;
+}
+
+.recording-text {
+  color: #ff4444;
+  font-weight: 500;
+}
+
+.recording-timer {
+  color: #ff6666;
+  font-family: 'Courier New', monospace;
+  font-size: 0.6rem;
+  background: rgba(255, 0, 0, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
 }
 
 .gesture-preview {
@@ -1226,6 +1287,7 @@ body #cdawrap {
   font-size: 0.7rem;
   color: rgba(255, 255, 255, 0.6);
   padding: 0 12px;
+  display: none;
 }
 
 .color-bar-labels span {
@@ -1310,6 +1372,26 @@ body #cdawrap {
   }
   50% {
     opacity: 0.5;
+  }
+}
+
+@keyframes recordingPulse {
+  0% {
+    background: rgba(255, 0, 0, 0.2);
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+  }
+  100% {
+    background: rgba(255, 0, 0, 0.3);
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+  }
+}
+
+@keyframes recordingBlink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0.3;
   }
 }
 

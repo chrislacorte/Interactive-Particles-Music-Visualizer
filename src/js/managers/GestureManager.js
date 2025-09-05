@@ -100,6 +100,12 @@ export default class GestureManager {
       feedbackTimeout: null,
       isTransitioning: false
     }
+    
+    // Gesture recording state
+    this.isRecording = false
+    this.recordedFrames = []
+    this.recordStartTime = 0
+    this.recordingTimer = null
   }
 
   async init() {
@@ -170,6 +176,11 @@ export default class GestureManager {
     // Setup toggle button
     document.getElementById('gestureToggle').addEventListener('click', () => {
       this.toggleGestures()
+    })
+    
+    // Setup record button
+    document.getElementById('gestureRecord').addEventListener('click', () => {
+      this.toggleRecording()
     })
   }
 
@@ -339,6 +350,10 @@ export default class GestureManager {
         previewEl.style.display = 'block'
         helpEl.style.display = 'block'
         
+        // Show record button when gestures are enabled
+        const recordButton = document.getElementById('gestureRecord')
+        recordButton.style.display = 'flex'
+        
         // Apply current webcam mode
         this.setWebcamMode(this.webcamMode)
         
@@ -366,14 +381,143 @@ export default class GestureManager {
       previewEl.style.display = 'none'
       helpEl.style.display = 'none'
       
+      // Hide record button and stop recording if active
+      const recordButton = document.getElementById('gestureRecord')
+      recordButton.style.display = 'none'
+      
+      if (this.isRecording) {
+        this.stopRecording()
+      }
+      
       if (this.callbacks.onGestureEnd) {
         this.callbacks.onGestureEnd()
       }
     }
   }
 
+  toggleRecording() {
+    if (this.isRecording) {
+      this.stopRecording()
+    } else {
+      this.startRecording()
+    }
+  }
+
+  startRecording() {
+    if (!this.isEnabled) {
+      this.showError('Please enable gestures first before recording')
+      return
+    }
+
+    this.isRecording = true
+    this.recordedFrames = []
+    this.recordStartTime = Date.now()
+    
+    // Update UI
+    const recordButton = document.getElementById('gestureRecord')
+    const recordingStatus = document.querySelector('.recording-status')
+    const recordingTimer = document.querySelector('.recording-timer')
+    
+    recordButton.classList.add('recording')
+    recordButton.innerHTML = `
+      <svg class="gesture-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="6" y="6" width="12" height="12"></rect>
+      </svg>
+      Stop Recording
+    `
+    
+    recordingStatus.style.display = 'flex'
+    
+    // Start timer
+    this.recordingTimer = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - this.recordStartTime) / 1000)
+      recordingTimer.textContent = `${elapsed}s`
+    }, 100)
+    
+    console.log('Started gesture recording')
+  }
+
+  stopRecording() {
+    if (!this.isRecording) return
+    
+    this.isRecording = false
+    
+    // Clear timer
+    if (this.recordingTimer) {
+      clearInterval(this.recordingTimer)
+      this.recordingTimer = null
+    }
+    
+    // Update UI
+    const recordButton = document.getElementById('gestureRecord')
+    const recordingStatus = document.querySelector('.recording-status')
+    
+    recordButton.classList.remove('recording')
+    recordButton.innerHTML = `
+      <svg class="gesture-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M12 1v6m0 6v6"></path>
+        <path d="m15.5 3.5-3.5 3.5-3.5-3.5"></path>
+        <path d="m8.5 20.5 3.5-3.5 3.5 3.5"></path>
+      </svg>
+      Record Gesture
+    `
+    
+    recordingStatus.style.display = 'none'
+    
+    // Download recorded data
+    this.downloadRecordedData()
+    
+    console.log(`Stopped gesture recording. Captured ${this.recordedFrames.length} frames`)
+  }
+
+  downloadRecordedData() {
+    if (this.recordedFrames.length === 0) {
+      console.warn('No frames recorded')
+      return
+    }
+    
+    const recordingData = {
+      metadata: {
+        recordingStartTime: this.recordStartTime,
+        recordingEndTime: Date.now(),
+        totalFrames: this.recordedFrames.length,
+        duration: Date.now() - this.recordStartTime,
+        averageFPS: this.recordedFrames.length / ((Date.now() - this.recordStartTime) / 1000)
+      },
+      frames: this.recordedFrames
+    }
+    
+    // Create downloadable JSON file
+    const dataStr = JSON.stringify(recordingData, null, 2)
+    const dataBlob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(dataBlob)
+    
+    // Create download link
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `gesture-recording-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
+    
+    // Trigger download
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
+    // Clean up
+    URL.revokeObjectURL(url)
+    
+    // Show success feedback
+    this.showGestureFeedback('record', `Recorded ${this.recordedFrames.length} frames`)
+    
+    console.log('Downloaded gesture recording data:', recordingData.metadata)
+  }
   onHandResults(results) {
     if (!this.isEnabled) return
+    
+    // Record frame data if recording is active
+    if (this.isRecording) {
+      this.recordFrame('hand', results)
+    }
     
     this.canvasCtx.save()
     this.canvasCtx.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height)
@@ -398,10 +542,38 @@ export default class GestureManager {
   onPoseResults(results) {
     if (!this.isEnabled || !results.poseLandmarks) return
     
+    // Record frame data if recording is active
+    if (this.isRecording) {
+      this.recordFrame('pose', results)
+    }
+    
     // Process body gestures
     this.processBodyGestures(results.poseLandmarks)
   }
 
+  recordFrame(type, results) {
+    const frameData = {
+      timestamp: Date.now(),
+      relativeTime: Date.now() - this.recordStartTime,
+      type: type,
+      data: {}
+    }
+    
+    if (type === 'hand') {
+      frameData.data = {
+        multiHandLandmarks: results.multiHandLandmarks || [],
+        multiHandedness: results.multiHandedness || [],
+        handCount: results.multiHandLandmarks ? results.multiHandLandmarks.length : 0
+      }
+    } else if (type === 'pose') {
+      frameData.data = {
+        poseLandmarks: results.poseLandmarks || [],
+        poseWorldLandmarks: results.poseWorldLandmarks || []
+      }
+    }
+    
+    this.recordedFrames.push(frameData)
+  }
   processHandGestures(landmarks) {
     // Detect pinch gesture
     const pinchStrength = this.detectPinch(landmarks)
