@@ -134,9 +134,23 @@ export default class GestureManager {
           </svg>
           Enable Gestures
         </button>
+        <button class="gesture-record" id="gestureRecord" style="display: none;">
+          <svg class="gesture-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6"></path>
+            <path d="m15.5 3.5-3.5 3.5-3.5-3.5"></path>
+            <path d="m8.5 20.5 3.5-3.5 3.5 3.5"></path>
+          </svg>
+          Record Gesture
+        </button>
         <div class="gesture-status" style="display: none;">
           <div class="status-indicator"></div>
           <span class="status-text">Gestures Active</span>
+        </div>
+        <div class="recording-status" style="display: none;">
+          <div class="recording-indicator"></div>
+          <span class="recording-text">Recording...</span>
+          <span class="recording-timer">0s</span>
         </div>
         <div class="gesture-feedback" style="display: none;">
           <div class="feedback-icon"></div>
