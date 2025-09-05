@@ -325,7 +325,6 @@ export default class App {
       }
     }, 2000)
   }
-  resize() {
   setupUIToggle() {
     const uiToggle = document.getElementById('uiToggle')
     const uiToggleText = document.querySelector('.ui-toggle-text')
@@ -366,6 +365,7 @@ export default class App {
     }
   }
   
+  resize() {
     this.width = window.innerWidth
     this.height = window.innerHeight
 
