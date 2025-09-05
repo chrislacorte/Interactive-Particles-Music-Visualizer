@@ -23,6 +23,14 @@ Enhanced music visualizer in Three.js with local file upload and gesture control
 - **Open Palm**: Reset all parameters to default
 - **Body Lean**: Adjust particle rotation and frequency
 
+### 🎬 Record Mode
+- **High-Quality Recording**: Capture visualizer output at 30 FPS with audio synchronization
+- **Multiple Quality Settings**: Choose from High (8 Mbps), Medium (4 Mbps), or Low (2 Mbps)
+- **Custom File Names**: Set your preferred filename for recordings
+- **Real-Time Monitoring**: View recording time, file size, and frame count during capture
+- **Keyboard Shortcuts**: Ctrl/Cmd + R to start/stop, Escape to stop recording
+- **Automatic Download**: Recordings are automatically saved as WebM files with timestamp
+
 ## How to Use
 
 ### File Upload
@@ -40,6 +48,21 @@ Enhanced music visualizer in Three.js with local file upload and gesture control
    - Swipe up or down to adjust intensity
    - Show an open palm to reset all settings
    - Lean your body left or right for dynamic effects
+
+### Record Mode
+1. Click the "Record" button in the top-right corner
+2. Optionally adjust quality settings and filename
+3. Click "Record" to start capturing (button turns red and shows "Stop")
+4. Perform your visualizations while recording
+5. Click "Stop" to end recording
+6. The video file will automatically download to your device
+
+**Recording Features:**
+- **Quality Control**: Adjust bitrate for file size vs quality balance
+- **Audio Sync**: Captures both visual and audio for perfect synchronization
+- **Progress Monitoring**: Real-time display of recording duration and file size
+- **Error Handling**: Automatic error detection and user feedback
+- **Memory Management**: Efficient handling to prevent crashes during long recordings
 
 ## Installation
 

@@ -14,6 +14,7 @@ import GestureManager from './managers/GestureManager'
 import VisualizationModeManager from './managers/VisualizationModeManager'
 import ColorSyncManager from './managers/ColorSyncManager'
 import ColorBarManager from './managers/ColorBarManager'
+import RecordManager from './managers/RecordManager'
 
 export default class App {
   //THREE objects
@@ -29,6 +30,7 @@ export default class App {
   static visualizationModeManager = null
   static colorSyncManager = null
   static colorBarManager = null
+  static recordManager = null
   
   //Visual entities
   static particles = null
@@ -157,6 +159,10 @@ export default class App {
     App.visualizationModeManager.onModeChange((newMode, previousMode) => {
       this.handleVisualizationModeChange(newMode, previousMode)
     })
+    
+    // Initialize record manager
+    App.recordManager = new RecordManager()
+    App.recordManager.init()
     
     // Setup global color change listeners
     this.setupGlobalColorListeners()
