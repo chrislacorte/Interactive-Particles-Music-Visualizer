@@ -190,7 +190,54 @@ body #cdawrap {
 }
 
 .dg.ac {
-  display: none;
+  display: none !important;
+}
+
+/* UI Toggle Button */
+.ui-toggle {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.ui-toggle:hover {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.ui-toggle-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Hide all UI elements when UI is hidden */
+body.ui-hidden .bottom-nav,
+body.ui-hidden .color-bar-container,
+body.ui-hidden .upload-container,
+body.ui-hidden .gesture-container,
+body.ui-hidden .webcam-controls,
+body.ui-hidden .current-track {
+  display: none !important;
+}
+
+/* Keep UI toggle visible when UI is hidden */
+body.ui-hidden .ui-toggle {
+  display: flex !important;
 }
 
 /* File Upload Styles */
