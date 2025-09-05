@@ -788,36 +788,7 @@ body #cdawrap {
 }
 
 .nav-menu::before {
-  content: '';
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  height: 4px;
-  background: linear-gradient(
-    90deg,
-    #ff00ff 0%,
-    #ff4500 14.28%,
-    #ffd700 28.56%,
-    #00ff00 42.84%,
-    #00ffff 57.12%,
-    #0066ff 71.4%,
-    #8a2be2 85.68%,
-    #ff1493 100%
-  );
-  border-radius: 2px;
-  box-shadow: 0 2px 8px rgba(255, 0, 255, 0.3);
-  animation: colorShift 3s ease-in-out infinite alternate;
-}
-
-@keyframes colorShift {
-  0% {
-    filter: hue-rotate(0deg) brightness(1);
-  }
-  100% {
-    filter: hue-rotate(30deg) brightness(1.2);
-  }
+  display: none;
 }
 
 .nav-menu:hover {
@@ -825,20 +796,6 @@ body #cdawrap {
   border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-}
-
-.nav-menu:hover::before {
-  box-shadow: 0 4px 16px rgba(255, 0, 255, 0.5);
-  animation-duration: 1.5s;
-}
-
-.nav-title {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0 0 1rem 0;
-  text-align: center;
-  font-weight: 500;
-  letter-spacing: 0.5px;
 }
 
 .nav-options {
@@ -1051,7 +1008,7 @@ body #cdawrap {
   
   .nav-title {
     font-size: 0.8rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0;
   }
 }
 
