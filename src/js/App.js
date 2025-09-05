@@ -5,6 +5,7 @@ import AudioReactiveVisualizer from './entities/AudioReactiveVisualizer'
 import DistortionVisualizer from './entities/DistortionVisualizer'
 import MicrophoneVisualizer from './entities/MicrophoneVisualizer'
 import FingerPaintingVisualizer from './entities/FingerPaintingVisualizer'
+import OctahedronVisualizer from './entities/OctahedronVisualizer'
 import * as dat from 'dat.gui'
 import BPMManager from './managers/BPMManager'
 import AdvancedAudioManager from './managers/AdvancedAudioManager'
@@ -36,6 +37,7 @@ export default class App {
   static distortionVisualizer = null
   static microphoneVisualizer = null
   static fingerPaintingVisualizer = null
+  static octahedronVisualizer = null
 
   constructor() {
     this.onClickBinder = () => this.init()
@@ -118,11 +120,15 @@ export default class App {
     
     App.fingerPaintingVisualizer = new FingerPaintingVisualizer()
     
+    App.octahedronVisualizer = new OctahedronVisualizer()
+    App.octahedronVisualizer.init()
+    
     // Start with particles mode, hide anomaly visualizer
     App.anomalyVisualizer.visible = false
     App.audioReactiveVisualizer.visible = false
     App.distortionVisualizer.visible = false
     App.fingerPaintingVisualizer.visible = false
+    App.octahedronVisualizer.visible = false
 
     App.bpmManager = new BPMManager()
     App.bpmManager.addEventListener('beat', () => {
@@ -191,6 +197,7 @@ export default class App {
     if (App.audioReactiveVisualizer) App.audioReactiveVisualizer.visible = false
     if (App.distortionVisualizer) App.distortionVisualizer.visible = false
     if (App.fingerPaintingVisualizer) App.fingerPaintingVisualizer.visible = false
+    if (App.octahedronVisualizer) App.octahedronVisualizer.visible = false
     
     // Switch visualization based on the selected mode
     switch (newMode) {
@@ -250,6 +257,10 @@ export default class App {
             }, 100)
           })
         }
+        break
+        
+      case 'octahedron':
+        App.octahedronVisualizer.visible = true
         break
         
       default:
@@ -353,6 +364,10 @@ export default class App {
     if (App.fingerPaintingVisualizer?.visible) {
       // Finger painting visualizer handles its own animation loop
       // Just ensure it's receiving audio data
+    }
+    
+    if (App.octahedronVisualizer?.visible) {
+      App.octahedronVisualizer.update()
     }
     
     App.advancedAudioManager.update()
